@@ -4,10 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="atem">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="theme-color" content="#fafafa">
+  <meta name="theme-color" content="#fafafa" id="theme-color">
+  <meta name="color-scheme" content="light dark">
   <meta name="format-detection" content="telephone=no">
   <title>atem</title>
   <link rel="manifest" href="manifest.json">
@@ -18,13 +19,45 @@
       --bg: #fafafa;
       --text: #1a1a1a;
       --line: #1a1a1a;
-      --line-opacity: 0.12;
+      --line-opacity: 0.3;
       --thought-bg: transparent;
-      --thought-bg-active: rgba(0,0,0,0.03);
+      --thought-bg-active: rgba(0,0,0,0.04);
+      --thought-bg-source: rgba(0,0,0,0.08);
+      --accent: #007aff;
+      --danger: #ff3b30;
       --sat: env(safe-area-inset-top, 0px);
       --sab: env(safe-area-inset-bottom, 0px);
       --sal: env(safe-area-inset-left, 0px);
       --sar: env(safe-area-inset-right, 0px);
+    }
+    
+    @media (prefers-color-scheme: dark) {
+      :root:not(.light) {
+        --bg: #0a0a0a;
+        --text: #e5e5e5;
+        --line: #e5e5e5;
+        --line-opacity: 0.25;
+        --thought-bg-active: rgba(255,255,255,0.06);
+        --thought-bg-source: rgba(255,255,255,0.12);
+      }
+    }
+    
+    :root.dark {
+      --bg: #0a0a0a;
+      --text: #e5e5e5;
+      --line: #e5e5e5;
+      --line-opacity: 0.25;
+      --thought-bg-active: rgba(255,255,255,0.06);
+      --thought-bg-source: rgba(255,255,255,0.12);
+    }
+    
+    :root.light {
+      --bg: #fafafa;
+      --text: #1a1a1a;
+      --line: #1a1a1a;
+      --line-opacity: 0.3;
+      --thought-bg-active: rgba(0,0,0,0.04);
+      --thought-bg-source: rgba(0,0,0,0.08);
     }
     
     * {
@@ -37,7 +70,11 @@
       user-select: none;
     }
     
-    html { height: 100%; background: var(--bg); }
+    html { 
+      height: 100%; 
+      background: var(--bg);
+      transition: background 0.3s ease;
+    }
     
     body {
       overflow: hidden;
@@ -49,6 +86,7 @@
       position: fixed;
       touch-action: none;
       -webkit-font-smoothing: antialiased;
+      transition: background 0.3s ease, color 0.3s ease;
     }
     
     #canvas {
@@ -75,20 +113,28 @@
     }
     
     .line {
-      stroke: var(--line);
-      stroke-width: 1;
-      stroke-linecap: round;
       fill: none;
+      stroke: var(--line);
+      stroke-width: 1.5;
+      stroke-linecap: round;
       opacity: var(--line-opacity);
+      transition: opacity 0.2s ease, stroke 0.2s ease;
+      cursor: pointer;
+      pointer-events: stroke;
+    }
+    
+    .line:hover {
+      opacity: 0.6;
+      stroke-width: 3;
     }
     
     #pending {
-      stroke: var(--line);
-      stroke-width: 1;
-      stroke-linecap: round;
-      stroke-dasharray: 4 4;
       fill: none;
-      opacity: 0.25;
+      stroke: var(--accent);
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-dasharray: 6 6;
+      opacity: 0.6;
       visibility: hidden;
     }
     
@@ -96,7 +142,7 @@
       position: absolute;
       min-width: 44px;
       min-height: 44px;
-      max-width: min(320px, 75vw);
+      max-width: min(480px, 85vw);
       padding: 14px 18px;
       font-size: 18px;
       font-weight: 400;
@@ -114,17 +160,43 @@
       -webkit-user-select: text;
       user-select: text;
       cursor: text;
-      transform: translate3d(0,0,0);
       border-radius: 8px;
-      transition: background 0.15s ease, opacity 0.15s ease;
+      transition: background 0.15s ease, opacity 0.15s ease, transform 0.2s ease, box-shadow 0.2s ease;
     }
     
     .t:empty::before { content: ''; }
     .t:focus { background: var(--thought-bg-active); }
     .t.dragging { opacity: 0.6; z-index: 100; }
-    .t.connecting { background: rgba(0,0,0,0.05); }
-    .t.source { background: rgba(0,0,0,0.07); }
+    .t.connecting { 
+      background: var(--thought-bg-active);
+      box-shadow: 0 0 0 2px var(--accent);
+    }
     
+    /* Source thought - pulsing glow while in connect mode */
+    .t.source { 
+      background: var(--thought-bg-source);
+      box-shadow: 0 0 0 2px var(--accent);
+    }
+    
+    /* Long-press visual feedback - grows border */
+    .t.holding {
+      box-shadow: 0 0 0 2px var(--accent);
+      animation: holdPulse 0.3s ease-out;
+    }
+    
+    @keyframes holdPulse {
+      0% { box-shadow: 0 0 0 0 var(--accent); }
+      100% { box-shadow: 0 0 0 2px var(--accent); }
+    }
+    
+    .t.deleting {
+      opacity: 0;
+      transform: scale(0.8);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      pointer-events: none;
+    }
+    
+    /* Sync indicator */
     #sync {
       position: fixed;
       top: calc(12px + var(--sat));
@@ -132,48 +204,198 @@
       width: 6px;
       height: 6px;
       border-radius: 50%;
-      background: #999;
+      background: var(--text);
       opacity: 0;
       transition: opacity 0.3s ease;
       z-index: 1000;
       pointer-events: none;
     }
-    #sync.saving { opacity: 0.5; }
-    #sync.saved { opacity: 0.3; }
+    #sync.saving { opacity: 0.4; }
+    #sync.saved { opacity: 0.2; }
     #sync.saved.fade { opacity: 0; }
     
+    /* Controls - bottom right cluster */
+    .controls {
+      position: fixed;
+      bottom: calc(16px + var(--sab));
+      right: calc(16px + var(--sar));
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 1000;
+    }
+    
+    .ctrl-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--thought-bg-active);
+      border: none;
+      cursor: pointer;
+      opacity: 0.5;
+      transition: opacity 0.2s ease, background 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .ctrl-btn:hover, .ctrl-btn:active { opacity: 0.8; }
+    .ctrl-btn svg {
+      width: 18px;
+      height: 18px;
+      fill: var(--text);
+    }
+    
+    /* Dev menu */
+    #dev-menu {
+      position: fixed;
+      bottom: calc(70px + var(--sab));
+      right: calc(16px + var(--sar));
+      background: var(--bg);
+      border: 1px solid var(--thought-bg-active);
+      border-radius: 12px;
+      padding: 8px 0;
+      min-width: 180px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      z-index: 1001;
+      display: none;
+    }
+    #dev-menu.open { display: block; }
+    
+    .dev-item {
+      padding: 10px 16px;
+      font-size: 14px;
+      color: var(--text);
+      cursor: pointer;
+      transition: background 0.1s ease;
+    }
+    .dev-item:hover { background: var(--thought-bg-active); }
+    .dev-item.danger { color: var(--danger); }
+    .dev-item.disabled { opacity: 0.4; pointer-events: none; }
+    
+    .dev-divider {
+      height: 1px;
+      background: var(--thought-bg-active);
+      margin: 4px 0;
+    }
+    
+    .dev-stats {
+      padding: 8px 16px;
+      font-size: 11px;
+      color: var(--text);
+      opacity: 0.5;
+      font-family: monospace;
+    }
+    
     @keyframes fadeIn {
-      from { opacity: 0; transform: translate3d(0, 4px, 0); }
-      to { opacity: 1; transform: translate3d(0, 0, 0); }
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
     }
     .t.new { animation: fadeIn 0.2s ease-out; }
+    
+    /* Toast notifications */
+    #toast {
+      position: fixed;
+      bottom: calc(80px + var(--sab));
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--text);
+      color: var(--bg);
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-size: 14px;
+      opacity: 0;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      z-index: 2000;
+      pointer-events: none;
+    }
+    #toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
   </style>
 </head>
 <body>
   <div id="sync"></div>
+  <div id="toast"></div>
+  
+  <div class="controls">
+    <button class="ctrl-btn" id="btn-home" aria-label="Fit all">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+    </button>
+    <button class="ctrl-btn" id="btn-theme" aria-label="Toggle theme">
+      <svg viewBox="0 0 24 24" id="theme-icon"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/></svg>
+    </button>
+    <button class="ctrl-btn" id="btn-menu" aria-label="Menu">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+    </button>
+  </div>
+  
+  <div id="dev-menu">
+    <div class="dev-stats" id="stats"></div>
+    <div class="dev-divider"></div>
+    <div class="dev-item" id="menu-export">Export as Image</div>
+    <div class="dev-item" id="menu-export-json">Export JSON</div>
+    <div class="dev-item" id="menu-import">Import JSON</div>
+    <div class="dev-divider"></div>
+    <div class="dev-item" id="menu-center">Center View</div>
+    <div class="dev-item" id="menu-fit">Fit All Thoughts</div>
+    <div class="dev-divider"></div>
+    <div class="dev-item danger" id="menu-clear">Clear All</div>
+  </div>
+  
   <div id="canvas">
     <div id="world">
       <svg id="lines">
-        <line id="pending" x1="0" y1="0" x2="0" y2="0"/>
+        <path id="pending" d="M0,0"/>
       </svg>
     </div>
   </div>
+  
+  <input type="file" id="import-input" accept=".json" style="display:none">
 
 <script>
 (() => {
   'use strict';
+  
+  // ═══════════════════════════════════════════════════════════════
+  // Config
+  // ═══════════════════════════════════════════════════════════════
   
   const STORAGE_KEY = 'atem';
   const DRAG_THRESHOLD = 8;
   const LONG_PRESS_MS = 300;
   const WORLD_SIZE = 30000;
   const WORLD_CENTER = WORLD_SIZE / 2;
-  const MIN_SCALE = 0.2;
+  const MIN_SCALE = 0.15;
   const MAX_SCALE = 4;
   const SAVE_DEBOUNCE = 400;
+  const FLICK_VELOCITY = 1.5;
+  const DOUBLE_TAP_MS = 300;
+  const MOMENTUM_FRICTION = 0.92;
   
-  let state = { thoughts: [], links: [], view: { x: WORLD_CENTER, y: WORLD_CENTER, scale: 1 } };
+  // ═══════════════════════════════════════════════════════════════
+  // State
+  // ═══════════════════════════════════════════════════════════════
+  
+  let state = { 
+    thoughts: [], 
+    links: [], 
+    view: { x: WORLD_CENTER, y: WORLD_CENTER, scale: 1 },
+    theme: null
+  };
   let view = { x: WORLD_CENTER, y: WORLD_CENTER, scale: 1 };
+  let interaction = null;
+  let pinch = null;
+  let saveTimeout = null;
+  let animationFrame = null;
+  let velocityHistory = [];
+  let lastTapTime = 0;
+  let lastTapTarget = null;
+  let menuOpen = false;
+  
+  // ═══════════════════════════════════════════════════════════════
+  // DOM
+  // ═══════════════════════════════════════════════════════════════
   
   const $ = s => document.querySelector(s);
   const canvas = $('#canvas');
@@ -181,15 +403,65 @@
   const linesEl = $('#lines');
   const pendingLine = $('#pending');
   const syncDot = $('#sync');
+  const toast = $('#toast');
+  const themeColorMeta = $('#theme-color');
+  const themeIcon = $('#theme-icon');
+  const devMenu = $('#dev-menu');
+  const statsEl = $('#stats');
+  
+  // ═══════════════════════════════════════════════════════════════
+  // Utils
+  // ═══════════════════════════════════════════════════════════════
   
   const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
   const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
+  const lerp = (a, b, t) => a + (b - a) * t;
+  
   const toWorld = (sx, sy) => ({
     x: (sx / view.scale) + view.x - (window.innerWidth / 2 / view.scale),
     y: (sy / view.scale) + view.y - (window.innerHeight / 2 / view.scale)
   });
   
-  let saveTimeout = null;
+  const showToast = (msg, duration = 2000) => {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), duration);
+  };
+  
+  // ═══════════════════════════════════════════════════════════════
+  // Theme
+  // ═══════════════════════════════════════════════════════════════
+  
+  const isDarkMode = () => {
+    return document.documentElement.classList.contains('dark') ||
+      (!state.theme && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  };
+  
+  const applyTheme = () => {
+    const root = document.documentElement;
+    root.classList.remove('light', 'dark');
+    if (state.theme) root.classList.add(state.theme);
+    const dark = isDarkMode();
+    themeColorMeta.content = dark ? '#0a0a0a' : '#fafafa';
+    // Update icon
+    themeIcon.innerHTML = dark 
+      ? '<path d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0-3a1 1 0 0 0 1-1V1a1 1 0 0 0-2 0v2a1 1 0 0 0 1 1zm0 18a1 1 0 0 0-1 1v2a1 1 0 0 0 2 0v-2a1 1 0 0 0-1-1zM4.22 5.64a1 1 0 0 0 1.42-1.42l-1.43-1.4a1 1 0 0 0-1.4 1.4l1.41 1.42zm15.56 12.72a1 1 0 0 0-1.42 1.42l1.43 1.4a1 1 0 0 0 1.4-1.4l-1.41-1.42zM4 12a1 1 0 0 0-1-1H1a1 1 0 0 0 0 2h2a1 1 0 0 0 1-1zm18 0a1 1 0 0 0-1-1h-2a1 1 0 0 0 0 2h2a1 1 0 0 0 1-1zM5.64 19.78a1 1 0 0 0-1.42-1.42l-1.4 1.43a1 1 0 0 0 1.4 1.4l1.42-1.41zM18.36 4.22a1 1 0 0 0 1.42 1.42l1.4-1.43a1 1 0 0 0-1.4-1.4l-1.42 1.41z"/>'
+      : '<path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/>';
+  };
+  
+  const toggleTheme = () => {
+    state.theme = isDarkMode() ? 'light' : 'dark';
+    applyTheme();
+    save();
+  };
+  
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    if (!state.theme) applyTheme();
+  });
+  
+  // ═══════════════════════════════════════════════════════════════
+  // Persistence
+  // ═══════════════════════════════════════════════════════════════
   
   const load = () => {
     try {
@@ -199,9 +471,10 @@
         state.thoughts = p.thoughts || [];
         state.links = p.links || [];
         state.view = p.view || { x: WORLD_CENTER, y: WORLD_CENTER, scale: 1 };
+        state.theme = p.theme || null;
         view = { ...state.view };
       }
-    } catch (e) {}
+    } catch (e) { console.warn('Load failed:', e); }
   };
   
   const save = () => {
@@ -209,13 +482,22 @@
     syncDot.className = 'saving';
     saveTimeout = setTimeout(() => {
       state.view = { ...view };
+      // Clean orphan links
+      state.links = state.links.filter(l => 
+        state.thoughts.some(t => t.id === l.a) && 
+        state.thoughts.some(t => t.id === l.b)
+      );
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
         syncDot.className = 'saved';
         setTimeout(() => syncDot.classList.add('fade'), 1000);
-      } catch (e) {}
+      } catch (e) { console.warn('Save failed:', e); }
     }, SAVE_DEBOUNCE);
   };
+  
+  // ═══════════════════════════════════════════════════════════════
+  // View
+  // ═══════════════════════════════════════════════════════════════
   
   const applyView = () => {
     const tx = (window.innerWidth / 2) - (view.x * view.scale);
@@ -223,10 +505,78 @@
     world.style.transform = `translate(${tx}px, ${ty}px) scale(${view.scale})`;
   };
   
+  const panTo = (targetX, targetY, targetScale, duration = 300) => {
+    const startX = view.x, startY = view.y, startScale = view.scale;
+    const startTime = performance.now();
+    
+    const animate = (now) => {
+      const t = Math.min(1, (now - startTime) / duration);
+      const ease = 1 - Math.pow(1 - t, 3);
+      view.x = lerp(startX, targetX, ease);
+      view.y = lerp(startY, targetY, ease);
+      view.scale = lerp(startScale, targetScale, ease);
+      applyView();
+      if (t < 1) animationFrame = requestAnimationFrame(animate);
+      else save();
+    };
+    
+    cancelAnimationFrame(animationFrame);
+    animationFrame = requestAnimationFrame(animate);
+  };
+  
+  const centerView = () => {
+    panTo(WORLD_CENTER, WORLD_CENTER, 1);
+  };
+  
+  const fitAll = () => {
+    if (state.thoughts.length === 0) {
+      centerView();
+      return;
+    }
+    
+    // Calculate bounds
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    state.thoughts.forEach(t => {
+      const el = world.querySelector(`[data-id="${t.id}"]`);
+      const w = el ? el.offsetWidth : 100;
+      const h = el ? el.offsetHeight : 50;
+      minX = Math.min(minX, t.x);
+      minY = Math.min(minY, t.y);
+      maxX = Math.max(maxX, t.x + w);
+      maxY = Math.max(maxY, t.y + h);
+    });
+    
+    const padding = 60;
+    const boundsW = maxX - minX + padding * 2;
+    const boundsH = maxY - minY + padding * 2;
+    const centerX = (minX + maxX) / 2;
+    const centerY = (minY + maxY) / 2;
+    
+    const scaleX = window.innerWidth / boundsW;
+    const scaleY = window.innerHeight / boundsH;
+    const newScale = clamp(Math.min(scaleX, scaleY), MIN_SCALE, 2);
+    
+    panTo(centerX, centerY, newScale);
+  };
+  
+  const focusThought = (thoughtId) => {
+    const t = state.thoughts.find(t => t.id === thoughtId);
+    const el = world.querySelector(`[data-id="${thoughtId}"]`);
+    if (!t || !el) return;
+    const cx = t.x + el.offsetWidth / 2;
+    const cy = t.y + el.offsetHeight / 2;
+    panTo(cx, cy, view.scale > 1.2 ? 1 : 1.5);
+  };
+  
+  // ═══════════════════════════════════════════════════════════════
+  // Rendering
+  // ═══════════════════════════════════════════════════════════════
+  
   const render = () => {
     world.querySelectorAll('.t').forEach(el => el.remove());
     state.thoughts.forEach(t => createThoughtEl(t));
-    renderLines();
+    // Defer line rendering to after elements have size
+    requestAnimationFrame(() => renderLines());
     applyView();
   };
   
@@ -245,29 +595,40 @@
     return el;
   };
   
+  const getCurvePath = (x1, y1, x2, y2) => {
+    if (isNaN(x1) || isNaN(y1) || isNaN(x2) || isNaN(y2)) return 'M0,0';
+    const midX = (x1 + x2) / 2, midY = (y1 + y2) / 2;
+    const dx = x2 - x1, dy = y2 - y1;
+    const dist = Math.hypot(dx, dy);
+    if (dist === 0) return `M${x1},${y1}`;
+    const curvature = Math.min(dist * 0.15, 50);
+    const nx = -dy / dist * curvature, ny = dx / dist * curvature;
+    return `M${x1},${y1} Q${midX + nx},${midY + ny} ${x2},${y2}`;
+  };
+  
   const renderLines = () => {
     linesEl.querySelectorAll('.line').forEach(el => el.remove());
     state.links.forEach(link => {
       const elA = world.querySelector(`[data-id="${link.a}"]`);
       const elB = world.querySelector(`[data-id="${link.b}"]`);
       if (!elA || !elB) return;
-      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-      line.classList.add('line');
-      line.dataset.id = link.id;
-      positionLine(line, elA, elB);
-      linesEl.appendChild(line);
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.classList.add('line');
+      path.dataset.id = link.id;
+      path.dataset.a = link.a;
+      path.dataset.b = link.b;
+      positionLine(path, elA, elB);
+      path.addEventListener('click', onLineClick);
+      linesEl.appendChild(path);
     });
   };
   
-  const positionLine = (line, elA, elB) => {
+  const positionLine = (path, elA, elB) => {
     const ax = parseFloat(elA.style.left) + elA.offsetWidth / 2;
     const ay = parseFloat(elA.style.top) + elA.offsetHeight / 2;
     const bx = parseFloat(elB.style.left) + elB.offsetWidth / 2;
     const by = parseFloat(elB.style.top) + elB.offsetHeight / 2;
-    line.setAttribute('x1', ax);
-    line.setAttribute('y1', ay);
-    line.setAttribute('x2', bx);
-    line.setAttribute('y2', by);
+    path.setAttribute('d', getCurvePath(ax, ay, bx, by));
   };
   
   const updateLines = tid => {
@@ -275,13 +636,21 @@
     if (!el) return;
     state.links.forEach(link => {
       if (link.a !== tid && link.b !== tid) return;
-      const lineEl = linesEl.querySelector(`[data-id="${link.id}"]`);
-      if (!lineEl) return;
+      const pathEl = linesEl.querySelector(`[data-id="${link.id}"]`);
+      if (!pathEl) return;
       const otherId = link.a === tid ? link.b : link.a;
       const otherEl = world.querySelector(`[data-id="${otherId}"]`);
-      if (otherEl) positionLine(lineEl, el, otherEl);
+      if (otherEl) positionLine(pathEl, el, otherEl);
     });
   };
+  
+  const updatePendingLine = (x1, y1, x2, y2) => {
+    pendingLine.setAttribute('d', getCurvePath(x1, y1, x2, y2));
+  };
+  
+  // ═══════════════════════════════════════════════════════════════
+  // CRUD
+  // ═══════════════════════════════════════════════════════════════
   
   const addThought = (x, y, text = '') => {
     const t = { id: uid(), x, y, text, created: Date.now(), updated: Date.now() };
@@ -307,13 +676,20 @@
     if (t) { Object.assign(t, updates, { updated: Date.now() }); save(); }
   };
   
-  const removeThought = id => {
-    state.thoughts = state.thoughts.filter(t => t.id !== id);
-    state.links = state.links.filter(l => l.a !== id && l.b !== id);
+  const removeThought = (id, animate = false) => {
     const el = world.querySelector(`[data-id="${id}"]`);
-    if (el) el.remove();
-    renderLines();
-    save();
+    const doRemove = () => {
+      state.thoughts = state.thoughts.filter(t => t.id !== id);
+      state.links = state.links.filter(l => l.a !== id && l.b !== id);
+      if (el) el.remove();
+      renderLines();
+      save();
+    };
+    if (animate && el) {
+      el.classList.add('deleting');
+      if (navigator.vibrate) navigator.vibrate(5);
+      setTimeout(doRemove, 200);
+    } else doRemove();
   };
   
   const addLink = (aId, bId) => {
@@ -322,16 +698,56 @@
     state.links.push({ id: uid(), a: aId, b: bId });
     renderLines();
     save();
+    if (navigator.vibrate) navigator.vibrate(5);
   };
   
-  let interaction = null;
-  let pinch = null;
+  const removeLink = (linkId) => {
+    state.links = state.links.filter(l => l.id !== linkId);
+    renderLines();
+    save();
+    showToast('Link removed');
+    if (navigator.vibrate) navigator.vibrate(5);
+  };
+  
+  const onLineClick = (e) => {
+    e.stopPropagation();
+    const linkId = e.target.dataset.id;
+    if (linkId && confirm('Remove this connection?')) {
+      removeLink(linkId);
+    }
+  };
+  
+  // ═══════════════════════════════════════════════════════════════
+  // Velocity
+  // ═══════════════════════════════════════════════════════════════
+  
+  const trackVelocity = (x, y) => {
+    const now = performance.now();
+    velocityHistory.push({ x, y, t: now });
+    while (velocityHistory.length > 0 && now - velocityHistory[0].t > 100) velocityHistory.shift();
+  };
+  
+  const getVelocity = () => {
+    if (velocityHistory.length < 2) return { vx: 0, vy: 0 };
+    const first = velocityHistory[0], last = velocityHistory[velocityHistory.length - 1];
+    const dt = last.t - first.t;
+    if (dt === 0) return { vx: 0, vy: 0 };
+    return { vx: (last.x - first.x) / dt, vy: (last.y - first.y) / dt };
+  };
+  
+  const clearVelocity = () => { velocityHistory = []; };
+  
+  // ═══════════════════════════════════════════════════════════════
+  // Canvas Events
+  // ═══════════════════════════════════════════════════════════════
   
   canvas.addEventListener('pointerdown', e => {
-    if (e.target.classList.contains('t')) return;
+    if (e.target.classList.contains('t') || e.target.classList.contains('line')) return;
     if (interaction) return;
     e.preventDefault();
+    closeMenu();
     canvas.setPointerCapture(e.pointerId);
+    clearVelocity();
     interaction = {
       type: 'pan',
       pointerId: e.pointerId,
@@ -349,6 +765,7 @@
     if (interaction.moved) {
       view.x = interaction.startView.x - dx / view.scale;
       view.y = interaction.startView.y - dy / view.scale;
+      trackVelocity(e.clientX, e.clientY);
       applyView();
     }
   });
@@ -357,9 +774,12 @@
     if (!interaction || interaction.type !== 'pan' || interaction.pointerId !== e.pointerId) return;
     canvas.releasePointerCapture(e.pointerId);
     if (!interaction.moved) {
-      const pos = toWorld(e.clientX, e.clientY);
-      addThought(pos.x, pos.y);
-    } else { save(); }
+      addThought(toWorld(e.clientX, e.clientY).x, toWorld(e.clientX, e.clientY).y);
+    } else {
+      const { vx, vy } = getVelocity();
+      if (Math.abs(vx) > 0.3 || Math.abs(vy) > 0.3) applyMomentum(vx, vy);
+      else save();
+    }
     interaction = null;
   });
   
@@ -370,8 +790,24 @@
     }
   });
   
+  const applyMomentum = (vx, vy) => {
+    let velX = vx * 15, velY = vy * 15;
+    const animate = () => {
+      if (Math.abs(velX) < 0.1 && Math.abs(velY) < 0.1) { save(); return; }
+      view.x -= velX / view.scale;
+      view.y -= velY / view.scale;
+      velX *= MOMENTUM_FRICTION;
+      velY *= MOMENTUM_FRICTION;
+      applyView();
+      animationFrame = requestAnimationFrame(animate);
+    };
+    cancelAnimationFrame(animationFrame);
+    animationFrame = requestAnimationFrame(animate);
+  };
+  
   canvas.addEventListener('wheel', e => {
     e.preventDefault();
+    cancelAnimationFrame(animationFrame);
     const delta = e.deltaY > 0 ? 0.92 : 1.08;
     const newScale = clamp(view.scale * delta, MIN_SCALE, MAX_SCALE);
     if (newScale === view.scale) return;
@@ -387,6 +823,7 @@
   canvas.addEventListener('touchstart', e => {
     if (e.touches.length === 2) {
       e.preventDefault();
+      cancelAnimationFrame(animationFrame);
       const t0 = e.touches[0], t1 = e.touches[1];
       pinch = {
         startDist: Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY),
@@ -396,7 +833,9 @@
       };
       if (interaction) {
         clearTimeout(interaction.longPressTimer);
-        if (interaction.element) interaction.element.classList.remove('dragging', 'source');
+        if (interaction.element) {
+          interaction.element.classList.remove('dragging', 'source', 'holding');
+        }
         pendingLine.style.visibility = 'hidden';
         world.querySelectorAll('.t.connecting').forEach(el => el.classList.remove('connecting'));
         interaction = null;
@@ -423,6 +862,10 @@
   
   canvas.addEventListener('touchend', () => { if (pinch) { pinch = null; save(); } });
   
+  // ═══════════════════════════════════════════════════════════════
+  // Thought Events
+  // ═══════════════════════════════════════════════════════════════
+  
   const setupThoughtEvents = el => {
     el.addEventListener('pointerdown', onThoughtDown);
     el.addEventListener('input', onThoughtInput);
@@ -435,8 +878,25 @@
     const el = e.currentTarget;
     const t = state.thoughts.find(t => t.id === el.dataset.id);
     if (!t) return;
+    
+    closeMenu();
+    
+    const now = Date.now();
+    if (now - lastTapTime < DOUBLE_TAP_MS && lastTapTarget === el.dataset.id) {
+      e.preventDefault();
+      e.stopPropagation();
+      focusThought(el.dataset.id);
+      lastTapTime = 0;
+      lastTapTarget = null;
+      return;
+    }
+    lastTapTime = now;
+    lastTapTarget = el.dataset.id;
+    
     e.stopPropagation();
     el.setPointerCapture(e.pointerId);
+    clearVelocity();
+    
     interaction = {
       type: 'thought',
       pointerId: e.pointerId,
@@ -446,11 +906,21 @@
       thoughtId: el.dataset.id,
       moved: false,
       longPressTimer: null,
+      holdingTimer: null,
       isConnecting: false
     };
+    
+    // Show holding feedback after 150ms
+    interaction.holdingTimer = setTimeout(() => {
+      if (interaction && !interaction.moved) {
+        interaction.element.classList.add('holding');
+      }
+    }, 150);
+    
     interaction.longPressTimer = setTimeout(() => {
       if (interaction && !interaction.moved) startConnecting(el);
     }, LONG_PRESS_MS);
+    
     el.addEventListener('pointermove', onThoughtMove);
     el.addEventListener('pointerup', onThoughtUp);
     el.addEventListener('pointercancel', onThoughtCancel);
@@ -461,15 +931,22 @@
     const dx = e.clientX - interaction.startScreen.x;
     const dy = e.clientY - interaction.startScreen.y;
     const distance = Math.hypot(dx, dy);
+    trackVelocity(e.clientX, e.clientY);
+    
     if (distance > DRAG_THRESHOLD && !interaction.moved && !interaction.isConnecting) {
       interaction.moved = true;
       clearTimeout(interaction.longPressTimer);
+      clearTimeout(interaction.holdingTimer);
+      interaction.element.classList.remove('holding');
       interaction.element.classList.add('dragging');
     }
+    
     if (interaction.isConnecting) {
       const pos = toWorld(e.clientX, e.clientY);
-      pendingLine.setAttribute('x2', pos.x);
-      pendingLine.setAttribute('y2', pos.y);
+      const el = interaction.element;
+      const cx = parseFloat(el.style.left) + el.offsetWidth / 2;
+      const cy = parseFloat(el.style.top) + el.offsetHeight / 2;
+      updatePendingLine(cx, cy, pos.x, pos.y);
       const target = document.elementFromPoint(e.clientX, e.clientY);
       world.querySelectorAll('.t.connecting').forEach(el => el.classList.remove('connecting'));
       if (target && target.classList.contains('t') && target !== interaction.element) target.classList.add('connecting');
@@ -485,21 +962,23 @@
   const onThoughtUp = e => {
     if (!interaction || interaction.type !== 'thought' || interaction.pointerId !== e.pointerId) return;
     clearTimeout(interaction.longPressTimer);
+    clearTimeout(interaction.holdingTimer);
     const el = interaction.element;
+    el.classList.remove('holding');
     el.releasePointerCapture(e.pointerId);
     el.removeEventListener('pointermove', onThoughtMove);
     el.removeEventListener('pointerup', onThoughtUp);
     el.removeEventListener('pointercancel', onThoughtCancel);
+    
     if (interaction.isConnecting) {
       const target = document.elementFromPoint(e.clientX, e.clientY);
-      if (target && target.classList.contains('t') && target !== el) {
-        addLink(interaction.thoughtId, target.dataset.id);
-        if (navigator.vibrate) navigator.vibrate(5);
-      }
+      if (target && target.classList.contains('t') && target !== el) addLink(interaction.thoughtId, target.dataset.id);
       endConnecting();
     } else if (interaction.moved) {
       el.classList.remove('dragging');
-      updateThought(interaction.thoughtId, { x: parseFloat(el.style.left), y: parseFloat(el.style.top) });
+      const { vx, vy } = getVelocity();
+      if (Math.hypot(vx, vy) > FLICK_VELOCITY) removeThought(interaction.thoughtId, true);
+      else updateThought(interaction.thoughtId, { x: parseFloat(el.style.left), y: parseFloat(el.style.top) });
     }
     interaction = null;
   };
@@ -507,12 +986,13 @@
   const onThoughtCancel = e => {
     if (!interaction || interaction.type !== 'thought') return;
     clearTimeout(interaction.longPressTimer);
+    clearTimeout(interaction.holdingTimer);
     const el = interaction.element;
     el.releasePointerCapture(e.pointerId);
     el.removeEventListener('pointermove', onThoughtMove);
     el.removeEventListener('pointerup', onThoughtUp);
     el.removeEventListener('pointercancel', onThoughtCancel);
-    el.classList.remove('dragging');
+    el.classList.remove('dragging', 'holding');
     endConnecting();
     interaction = null;
   };
@@ -520,14 +1000,12 @@
   const startConnecting = el => {
     if (!interaction) return;
     interaction.isConnecting = true;
+    el.classList.remove('holding');
     el.classList.add('source');
-    if (navigator.vibrate) navigator.vibrate(15);
+    if (navigator.vibrate) navigator.vibrate(10);
     const cx = parseFloat(el.style.left) + el.offsetWidth / 2;
     const cy = parseFloat(el.style.top) + el.offsetHeight / 2;
-    pendingLine.setAttribute('x1', cx);
-    pendingLine.setAttribute('y1', cy);
-    pendingLine.setAttribute('x2', cx);
-    pendingLine.setAttribute('y2', cy);
+    updatePendingLine(cx, cy, cx, cy);
     pendingLine.style.visibility = 'visible';
   };
   
@@ -549,26 +1027,216 @@
   
   const onThoughtKey = e => { if (e.key === 'Escape') e.currentTarget.blur(); };
   
-  document.addEventListener('keydown', e => {
-    if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); view.scale = 1; applyView(); save(); }
+  // ═══════════════════════════════════════════════════════════════
+  // Controls & Menu
+  // ═══════════════════════════════════════════════════════════════
+  
+  $('#btn-home').addEventListener('click', () => { closeMenu(); fitAll(); });
+  $('#btn-theme').addEventListener('click', () => { closeMenu(); toggleTheme(); });
+  $('#btn-menu').addEventListener('click', toggleMenu);
+  
+  function toggleMenu() {
+    menuOpen = !menuOpen;
+    devMenu.classList.toggle('open', menuOpen);
+    if (menuOpen) updateStats();
+  }
+  
+  function closeMenu() {
+    menuOpen = false;
+    devMenu.classList.remove('open');
+  }
+  
+  function updateStats() {
+    statsEl.textContent = `${state.thoughts.length} thoughts · ${state.links.length} links`;
+  }
+  
+  // Menu items
+  $('#menu-export').addEventListener('click', () => {
+    closeMenu();
+    exportImage();
   });
+  
+  $('#menu-export-json').addEventListener('click', () => {
+    closeMenu();
+    const data = JSON.stringify(state, null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `atem-${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('Exported JSON');
+  });
+  
+  $('#menu-import').addEventListener('click', () => {
+    closeMenu();
+    $('#import-input').click();
+  });
+  
+  $('#import-input').addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const imported = JSON.parse(ev.target.result);
+        if (imported.thoughts) {
+          state.thoughts = imported.thoughts;
+          state.links = imported.links || [];
+          save();
+          render();
+          fitAll();
+          showToast('Imported successfully');
+        }
+      } catch (err) {
+        showToast('Invalid file');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  });
+  
+  $('#menu-center').addEventListener('click', () => {
+    closeMenu();
+    centerView();
+  });
+  
+  $('#menu-fit').addEventListener('click', () => {
+    closeMenu();
+    fitAll();
+  });
+  
+  $('#menu-clear').addEventListener('click', () => {
+    closeMenu();
+    if (confirm('Delete all thoughts? This cannot be undone.')) {
+      state.thoughts = [];
+      state.links = [];
+      save();
+      render();
+      centerView();
+      showToast('All cleared');
+    }
+  });
+  
+  // Close menu on outside click
+  document.addEventListener('click', e => {
+    if (menuOpen && !devMenu.contains(e.target) && e.target.id !== 'btn-menu') {
+      closeMenu();
+    }
+  });
+  
+  // ═══════════════════════════════════════════════════════════════
+  // Export as Image
+  // ═══════════════════════════════════════════════════════════════
+  
+  async function exportImage() {
+    if (state.thoughts.length === 0) {
+      showToast('Nothing to export');
+      return;
+    }
+    
+    showToast('Preparing export...');
+    
+    // Calculate bounds
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    state.thoughts.forEach(t => {
+      const el = world.querySelector(`[data-id="${t.id}"]`);
+      const w = el ? el.offsetWidth : 100;
+      const h = el ? el.offsetHeight : 50;
+      minX = Math.min(minX, t.x);
+      minY = Math.min(minY, t.y);
+      maxX = Math.max(maxX, t.x + w);
+      maxY = Math.max(maxY, t.y + h);
+    });
+    
+    const padding = 40;
+    const width = maxX - minX + padding * 2;
+    const height = maxY - minY + padding * 2;
+    
+    // Create canvas
+    const c = document.createElement('canvas');
+    const dpr = 2;
+    c.width = width * dpr;
+    c.height = height * dpr;
+    const ctx = c.getContext('2d');
+    ctx.scale(dpr, dpr);
+    
+    // Background
+    ctx.fillStyle = isDarkMode() ? '#0a0a0a' : '#fafafa';
+    ctx.fillRect(0, 0, width, height);
+    
+    // Lines
+    ctx.strokeStyle = isDarkMode() ? '#e5e5e5' : '#1a1a1a';
+    ctx.lineWidth = 1.5;
+    ctx.globalAlpha = 0.3;
+    state.links.forEach(link => {
+      const a = state.thoughts.find(t => t.id === link.a);
+      const b = state.thoughts.find(t => t.id === link.b);
+      if (!a || !b) return;
+      const elA = world.querySelector(`[data-id="${a.id}"]`);
+      const elB = world.querySelector(`[data-id="${b.id}"]`);
+      const ax = a.x - minX + padding + (elA ? elA.offsetWidth/2 : 50);
+      const ay = a.y - minY + padding + (elA ? elA.offsetHeight/2 : 25);
+      const bx = b.x - minX + padding + (elB ? elB.offsetWidth/2 : 50);
+      const by = b.y - minY + padding + (elB ? elB.offsetHeight/2 : 25);
+      
+      const midX = (ax + bx) / 2, midY = (ay + by) / 2;
+      const dx = bx - ax, dy = by - ay;
+      const dist = Math.hypot(dx, dy);
+      if (dist === 0) return;
+      const curve = Math.min(dist * 0.15, 50);
+      const nx = -dy / dist * curve, ny = dx / dist * curve;
+      
+      ctx.beginPath();
+      ctx.moveTo(ax, ay);
+      ctx.quadraticCurveTo(midX + nx, midY + ny, bx, by);
+      ctx.stroke();
+    });
+    ctx.globalAlpha = 1;
+    
+    // Text
+    ctx.fillStyle = isDarkMode() ? '#e5e5e5' : '#1a1a1a';
+    ctx.font = '18px -apple-system, BlinkMacSystemFont, sans-serif';
+    state.thoughts.forEach(t => {
+      const x = t.x - minX + padding + 18;
+      const y = t.y - minY + padding + 32;
+      ctx.fillText(t.text, x, y);
+    });
+    
+    // Download
+    const url = c.toDataURL('image/png');
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `atem-${new Date().toISOString().slice(0,10)}.png`;
+    a.click();
+    showToast('Exported image');
+  }
+  
+  // ═══════════════════════════════════════════════════════════════
+  // iOS quirks
+  // ═══════════════════════════════════════════════════════════════
   
   document.addEventListener('gesturestart', e => e.preventDefault());
   document.addEventListener('gesturechange', e => e.preventDefault());
   document.addEventListener('gestureend', e => e.preventDefault());
   
-  let lastTap = 0;
+  let lastTouchEnd = 0;
   document.addEventListener('touchend', e => {
     const now = Date.now();
-    if (now - lastTap < 300) e.preventDefault();
-    lastTap = now;
+    if (now - lastTouchEnd < 300) e.preventDefault();
+    lastTouchEnd = now;
   }, { passive: false });
   
+  // ═══════════════════════════════════════════════════════════════
+  // Init
+  // ═══════════════════════════════════════════════════════════════
+  
   load();
+  applyTheme();
   if (state.thoughts.length === 0) { view.x = WORLD_CENTER; view.y = WORLD_CENTER; view.scale = 1; }
   render();
   syncDot.className = 'saved fade';
-  
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 })();
 </script>
