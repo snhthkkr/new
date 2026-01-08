@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="atem">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#fafafa">
+  <meta name="format-detection" content="telephone=no">
+  <title>atem</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <style>
+    :root {
+      --bg: #fafafa;
+      --text: #1a1a1a;
+      --line: #1a1a1a;
+      --line-opacity: 0.12;
+      --thought-bg: transparent;
+      --thought-bg-active: rgba(0,0,0,0.03);
+      --sat: env(safe-area-inset-top, 0px);
+      --sab: env(safe-area-inset-bottom, 0px);
+      --sal: env(safe-area-inset-left, 0px);
+      --sar: env(safe-area-inset-right, 0px);
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    
+    html { height: 100%; background: var(--bg); }
+    
+    body {
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100%;
+      width: 100%;
+      position: fixed;
+      touch-action: none;
+      -webkit-font-smoothing: antialiased;
+    }
+    
+    #canvas {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+    }
+    
+    #world {
+      position: absolute;
+      transform-origin: 0 0;
+      will-change: transform;
+    }
+    
+    #lines {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 1px;
+      height: 1px;
+      overflow: visible;
+      pointer-events: none;
+      z-index: 0;
+    }
+    
+    .line {
+      stroke: var(--line);
+      stroke-width: 1;
+      stroke-linecap: round;
+      fill: none;
+      opacity: var(--line-opacity);
+    }
+    
+    #pending {
+      stroke: var(--line);
+      stroke-width: 1;
+      stroke-linecap: round;
+      stroke-dasharray: 4 4;
+      fill: none;
+      opacity: 0.25;
+      visibility: hidden;
+    }
+    
+    .t {
+      position: absolute;
+      min-width: 44px;
+      min-height: 44px;
+      max-width: min(320px, 75vw);
+      padding: 14px 18px;
+      font-size: 18px;
+      font-weight: 400;
+      line-height: 1.5;
+      letter-spacing: -0.01em;
+      color: var(--text);
+      background: var(--thought-bg);
+      border: none;
+      outline: none;
+      resize: none;
+      overflow: hidden;
+      overflow-wrap: break-word;
+      white-space: pre-wrap;
+      z-index: 1;
+      -webkit-user-select: text;
+      user-select: text;
+      cursor: text;
+      transform: translate3d(0,0,0);
+      border-radius: 8px;
+      transition: background 0.15s ease, opacity 0.15s ease;
+    }
+    
+    .t:empty::before { content: ''; }
+    .t:focus { background: var(--thought-bg-active); }
+    .t.dragging { opacity: 0.6; z-index: 100; }
+    .t.connecting { background: rgba(0,0,0,0.05); }
+    .t.source { background: rgba(0,0,0,0.07); }
+    
+    #sync {
+      position: fixed;
+      top: calc(12px + var(--sat));
+      right: calc(12px + var(--sar));
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #999;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: 1000;
+      pointer-events: none;
+    }
+    #sync.saving { opacity: 0.5; }
+    #sync.saved { opacity: 0.3; }
+    #sync.saved.fade { opacity: 0; }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translate3d(0, 4px, 0); }
+      to { opacity: 1; transform: translate3d(0, 0, 0); }
+    }
+    .t.new { animation: fadeIn 0.2s ease-out; }
+  </style>
+</head>
+<body>
+  <div id="sync"></div>
+  <div id="canvas">
+    <div id="world">
+      <svg id="lines">
+        <line id="pending" x1="0" y1="0" x2="0" y2="0"/>
+      </svg>
+    </div>
+  </div>
+
+<script>
+(() => {
+  'use strict';
+  
+  const STORAGE_KEY = 'atem';
+  const DRAG_THRESHOLD = 8;
+  const LONG_PRESS_MS = 300;
+  const WORLD_SIZE = 30000;
+  const WORLD_CENTER = WORLD_SIZE / 2;
+  const MIN_SCALE = 0.2;
+  const MAX_SCALE = 4;
+  const SAVE_DEBOUNCE = 400;
+  
+  let state = { thoughts: [], links: [], view: { x: WORLD_CENTER, y: WORLD_CENTER, scale: 1 } };
+  let view = { x: WORLD_CENTER, y: WORLD_CENTER, scale: 1 };
+  
+  const $ = s => document.querySelector(s);
+  const canvas = $('#canvas');
+  const world = $('#world');
+  const linesEl = $('#lines');
+  const pendingLine = $('#pending');
+  const syncDot = $('#sync');
+  
+  const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
+  const toWorld = (sx, sy) => ({
+    x: (sx / view.scale) + view.x - (window.innerWidth / 2 / view.scale),
+    y: (sy / view.scale) + view.y - (window.innerHeight / 2 / view.scale)
+  });
+  
+  let saveTimeout = null;
+  
+  const load = () => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const p = JSON.parse(raw);
+        state.thoughts = p.thoughts || [];
+        state.links = p.links || [];
+        state.view = p.view || { x: WORLD_CENTER, y: WORLD_CENTER, scale: 1 };
+        view = { ...state.view };
+      }
+    } catch (e) {}
+  };
+  
+  const save = () => {
+    clearTimeout(saveTimeout);
+    syncDot.className = 'saving';
+    saveTimeout = setTimeout(() => {
+      state.view = { ...view };
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        syncDot.className = 'saved';
+        setTimeout(() => syncDot.classList.add('fade'), 1000);
+      } catch (e) {}
+    }, SAVE_DEBOUNCE);
+  };
+  
+  const applyView = () => {
+    const tx = (window.innerWidth / 2) - (view.x * view.scale);
+    const ty = (window.innerHeight / 2) - (view.y * view.scale);
+    world.style.transform = `translate(${tx}px, ${ty}px) scale(${view.scale})`;
+  };
+  
+  const render = () => {
+    world.querySelectorAll('.t').forEach(el => el.remove());
+    state.thoughts.forEach(t => createThoughtEl(t));
+    renderLines();
+    applyView();
+  };
+  
+  const createThoughtEl = t => {
+    const el = document.createElement('div');
+    el.className = 't';
+    el.contentEditable = 'true';
+    el.spellcheck = false;
+    el.autocapitalize = 'sentences';
+    el.dataset.id = t.id;
+    el.textContent = t.text;
+    el.style.left = t.x + 'px';
+    el.style.top = t.y + 'px';
+    setupThoughtEvents(el);
+    world.appendChild(el);
+    return el;
+  };
+  
+  const renderLines = () => {
+    linesEl.querySelectorAll('.line').forEach(el => el.remove());
+    state.links.forEach(link => {
+      const elA = world.querySelector(`[data-id="${link.a}"]`);
+      const elB = world.querySelector(`[data-id="${link.b}"]`);
+      if (!elA || !elB) return;
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.classList.add('line');
+      line.dataset.id = link.id;
+      positionLine(line, elA, elB);
+      linesEl.appendChild(line);
+    });
+  };
+  
+  const positionLine = (line, elA, elB) => {
+    const ax = parseFloat(elA.style.left) + elA.offsetWidth / 2;
+    const ay = parseFloat(elA.style.top) + elA.offsetHeight / 2;
+    const bx = parseFloat(elB.style.left) + elB.offsetWidth / 2;
+    const by = parseFloat(elB.style.top) + elB.offsetHeight / 2;
+    line.setAttribute('x1', ax);
+    line.setAttribute('y1', ay);
+    line.setAttribute('x2', bx);
+    line.setAttribute('y2', by);
+  };
+  
+  const updateLines = tid => {
+    const el = world.querySelector(`[data-id="${tid}"]`);
+    if (!el) return;
+    state.links.forEach(link => {
+      if (link.a !== tid && link.b !== tid) return;
+      const lineEl = linesEl.querySelector(`[data-id="${link.id}"]`);
+      if (!lineEl) return;
+      const otherId = link.a === tid ? link.b : link.a;
+      const otherEl = world.querySelector(`[data-id="${otherId}"]`);
+      if (otherEl) positionLine(lineEl, el, otherEl);
+    });
+  };
+  
+  const addThought = (x, y, text = '') => {
+    const t = { id: uid(), x, y, text, created: Date.now(), updated: Date.now() };
+    state.thoughts.push(t);
+    save();
+    const el = createThoughtEl(t);
+    el.classList.add('new');
+    setTimeout(() => el.classList.remove('new'), 200);
+    requestAnimationFrame(() => {
+      el.focus();
+      const sel = window.getSelection();
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      range.collapse(false);
+      sel.removeAllRanges();
+      sel.addRange(range);
+    });
+    return t;
+  };
+  
+  const updateThought = (id, updates) => {
+    const t = state.thoughts.find(t => t.id === id);
+    if (t) { Object.assign(t, updates, { updated: Date.now() }); save(); }
+  };
+  
+  const removeThought = id => {
+    state.thoughts = state.thoughts.filter(t => t.id !== id);
+    state.links = state.links.filter(l => l.a !== id && l.b !== id);
+    const el = world.querySelector(`[data-id="${id}"]`);
+    if (el) el.remove();
+    renderLines();
+    save();
+  };
+  
+  const addLink = (aId, bId) => {
+    if (aId === bId) return;
+    if (state.links.some(l => (l.a === aId && l.b === bId) || (l.a === bId && l.b === aId))) return;
+    state.links.push({ id: uid(), a: aId, b: bId });
+    renderLines();
+    save();
+  };
+  
+  let interaction = null;
+  let pinch = null;
+  
+  canvas.addEventListener('pointerdown', e => {
+    if (e.target.classList.contains('t')) return;
+    if (interaction) return;
+    e.preventDefault();
+    canvas.setPointerCapture(e.pointerId);
+    interaction = {
+      type: 'pan',
+      pointerId: e.pointerId,
+      startScreen: { x: e.clientX, y: e.clientY },
+      startView: { x: view.x, y: view.y },
+      moved: false
+    };
+  });
+  
+  canvas.addEventListener('pointermove', e => {
+    if (!interaction || interaction.type !== 'pan' || interaction.pointerId !== e.pointerId) return;
+    const dx = e.clientX - interaction.startScreen.x;
+    const dy = e.clientY - interaction.startScreen.y;
+    if (Math.abs(dx) > DRAG_THRESHOLD || Math.abs(dy) > DRAG_THRESHOLD) interaction.moved = true;
+    if (interaction.moved) {
+      view.x = interaction.startView.x - dx / view.scale;
+      view.y = interaction.startView.y - dy / view.scale;
+      applyView();
+    }
+  });
+  
+  canvas.addEventListener('pointerup', e => {
+    if (!interaction || interaction.type !== 'pan' || interaction.pointerId !== e.pointerId) return;
+    canvas.releasePointerCapture(e.pointerId);
+    if (!interaction.moved) {
+      const pos = toWorld(e.clientX, e.clientY);
+      addThought(pos.x, pos.y);
+    } else { save(); }
+    interaction = null;
+  });
+  
+  canvas.addEventListener('pointercancel', e => {
+    if (interaction && interaction.pointerId === e.pointerId) {
+      canvas.releasePointerCapture(e.pointerId);
+      interaction = null;
+    }
+  });
+  
+  canvas.addEventListener('wheel', e => {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? 0.92 : 1.08;
+    const newScale = clamp(view.scale * delta, MIN_SCALE, MAX_SCALE);
+    if (newScale === view.scale) return;
+    const ptr = toWorld(e.clientX, e.clientY);
+    const ratio = newScale / view.scale;
+    view.x = ptr.x - (ptr.x - view.x) / ratio;
+    view.y = ptr.y - (ptr.y - view.y) / ratio;
+    view.scale = newScale;
+    applyView();
+    save();
+  }, { passive: false });
+  
+  canvas.addEventListener('touchstart', e => {
+    if (e.touches.length === 2) {
+      e.preventDefault();
+      const t0 = e.touches[0], t1 = e.touches[1];
+      pinch = {
+        startDist: Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY),
+        startScale: view.scale,
+        centerX: (t0.clientX + t1.clientX) / 2,
+        centerY: (t0.clientY + t1.clientY) / 2
+      };
+      if (interaction) {
+        clearTimeout(interaction.longPressTimer);
+        if (interaction.element) interaction.element.classList.remove('dragging', 'source');
+        pendingLine.style.visibility = 'hidden';
+        world.querySelectorAll('.t.connecting').forEach(el => el.classList.remove('connecting'));
+        interaction = null;
+      }
+    }
+  }, { passive: false });
+  
+  canvas.addEventListener('touchmove', e => {
+    if (pinch && e.touches.length === 2) {
+      e.preventDefault();
+      const t0 = e.touches[0], t1 = e.touches[1];
+      const newDist = Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY);
+      const newScale = clamp(pinch.startScale * (newDist / pinch.startDist), MIN_SCALE, MAX_SCALE);
+      if (newScale !== view.scale) {
+        const cw = toWorld(pinch.centerX, pinch.centerY);
+        const ratio = newScale / view.scale;
+        view.x = cw.x - (cw.x - view.x) / ratio;
+        view.y = cw.y - (cw.y - view.y) / ratio;
+        view.scale = newScale;
+        applyView();
+      }
+    }
+  }, { passive: false });
+  
+  canvas.addEventListener('touchend', () => { if (pinch) { pinch = null; save(); } });
+  
+  const setupThoughtEvents = el => {
+    el.addEventListener('pointerdown', onThoughtDown);
+    el.addEventListener('input', onThoughtInput);
+    el.addEventListener('blur', onThoughtBlur);
+    el.addEventListener('keydown', onThoughtKey);
+  };
+  
+  const onThoughtDown = e => {
+    if (interaction) return;
+    const el = e.currentTarget;
+    const t = state.thoughts.find(t => t.id === el.dataset.id);
+    if (!t) return;
+    e.stopPropagation();
+    el.setPointerCapture(e.pointerId);
+    interaction = {
+      type: 'thought',
+      pointerId: e.pointerId,
+      startScreen: { x: e.clientX, y: e.clientY },
+      startThoughtPos: { x: t.x, y: t.y },
+      element: el,
+      thoughtId: el.dataset.id,
+      moved: false,
+      longPressTimer: null,
+      isConnecting: false
+    };
+    interaction.longPressTimer = setTimeout(() => {
+      if (interaction && !interaction.moved) startConnecting(el);
+    }, LONG_PRESS_MS);
+    el.addEventListener('pointermove', onThoughtMove);
+    el.addEventListener('pointerup', onThoughtUp);
+    el.addEventListener('pointercancel', onThoughtCancel);
+  };
+  
+  const onThoughtMove = e => {
+    if (!interaction || interaction.type !== 'thought' || interaction.pointerId !== e.pointerId) return;
+    const dx = e.clientX - interaction.startScreen.x;
+    const dy = e.clientY - interaction.startScreen.y;
+    const distance = Math.hypot(dx, dy);
+    if (distance > DRAG_THRESHOLD && !interaction.moved && !interaction.isConnecting) {
+      interaction.moved = true;
+      clearTimeout(interaction.longPressTimer);
+      interaction.element.classList.add('dragging');
+    }
+    if (interaction.isConnecting) {
+      const pos = toWorld(e.clientX, e.clientY);
+      pendingLine.setAttribute('x2', pos.x);
+      pendingLine.setAttribute('y2', pos.y);
+      const target = document.elementFromPoint(e.clientX, e.clientY);
+      world.querySelectorAll('.t.connecting').forEach(el => el.classList.remove('connecting'));
+      if (target && target.classList.contains('t') && target !== interaction.element) target.classList.add('connecting');
+    } else if (interaction.moved) {
+      const newX = interaction.startThoughtPos.x + dx / view.scale;
+      const newY = interaction.startThoughtPos.y + dy / view.scale;
+      interaction.element.style.left = newX + 'px';
+      interaction.element.style.top = newY + 'px';
+      updateLines(interaction.thoughtId);
+    }
+  };
+  
+  const onThoughtUp = e => {
+    if (!interaction || interaction.type !== 'thought' || interaction.pointerId !== e.pointerId) return;
+    clearTimeout(interaction.longPressTimer);
+    const el = interaction.element;
+    el.releasePointerCapture(e.pointerId);
+    el.removeEventListener('pointermove', onThoughtMove);
+    el.removeEventListener('pointerup', onThoughtUp);
+    el.removeEventListener('pointercancel', onThoughtCancel);
+    if (interaction.isConnecting) {
+      const target = document.elementFromPoint(e.clientX, e.clientY);
+      if (target && target.classList.contains('t') && target !== el) {
+        addLink(interaction.thoughtId, target.dataset.id);
+        if (navigator.vibrate) navigator.vibrate(5);
+      }
+      endConnecting();
+    } else if (interaction.moved) {
+      el.classList.remove('dragging');
+      updateThought(interaction.thoughtId, { x: parseFloat(el.style.left), y: parseFloat(el.style.top) });
+    }
+    interaction = null;
+  };
+  
+  const onThoughtCancel = e => {
+    if (!interaction || interaction.type !== 'thought') return;
+    clearTimeout(interaction.longPressTimer);
+    const el = interaction.element;
+    el.releasePointerCapture(e.pointerId);
+    el.removeEventListener('pointermove', onThoughtMove);
+    el.removeEventListener('pointerup', onThoughtUp);
+    el.removeEventListener('pointercancel', onThoughtCancel);
+    el.classList.remove('dragging');
+    endConnecting();
+    interaction = null;
+  };
+  
+  const startConnecting = el => {
+    if (!interaction) return;
+    interaction.isConnecting = true;
+    el.classList.add('source');
+    if (navigator.vibrate) navigator.vibrate(15);
+    const cx = parseFloat(el.style.left) + el.offsetWidth / 2;
+    const cy = parseFloat(el.style.top) + el.offsetHeight / 2;
+    pendingLine.setAttribute('x1', cx);
+    pendingLine.setAttribute('y1', cy);
+    pendingLine.setAttribute('x2', cx);
+    pendingLine.setAttribute('y2', cy);
+    pendingLine.style.visibility = 'visible';
+  };
+  
+  const endConnecting = () => {
+    pendingLine.style.visibility = 'hidden';
+    world.querySelectorAll('.t.source, .t.connecting').forEach(el => el.classList.remove('source', 'connecting'));
+  };
+  
+  const onThoughtInput = e => {
+    const el = e.currentTarget;
+    updateThought(el.dataset.id, { text: el.textContent });
+    requestAnimationFrame(() => updateLines(el.dataset.id));
+  };
+  
+  const onThoughtBlur = e => {
+    const el = e.currentTarget;
+    if (!el.textContent.trim()) removeThought(el.dataset.id);
+  };
+  
+  const onThoughtKey = e => { if (e.key === 'Escape') e.currentTarget.blur(); };
+  
+  document.addEventListener('keydown', e => {
+    if ((e.metaKey || e.ctrlKey) && e.key === '0') { e.preventDefault(); view.scale = 1; applyView(); save(); }
+  });
+  
+  document.addEventListener('gesturestart', e => e.preventDefault());
+  document.addEventListener('gesturechange', e => e.preventDefault());
+  document.addEventListener('gestureend', e => e.preventDefault());
+  
+  let lastTap = 0;
+  document.addEventListener('touchend', e => {
+    const now = Date.now();
+    if (now - lastTap < 300) e.preventDefault();
+    lastTap = now;
+  }, { passive: false });
+  
+  load();
+  if (state.thoughts.length === 0) { view.x = WORLD_CENTER; view.y = WORLD_CENTER; view.scale = 1; }
+  render();
+  syncDot.className = 'saved fade';
+  
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+})();
+</script>
+</body>
+</html>
