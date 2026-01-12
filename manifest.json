@@ -1,11 +1,11 @@
 {
   "name": "atem",
   "short_name": "atem",
-  "description": "the space between thoughts",
+  "description": "interface for thinking",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#fafafa",
-  "theme_color": "#fafafa",
+  "background_color": "#000000",
+  "theme_color": "#000000",
   "orientation": "any",
   "icons": [
     {

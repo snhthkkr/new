@@ -7,304 +7,212 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="atem">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="theme-color" content="#fafafa" id="theme-color">
-  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#000000">
   <meta name="format-detection" content="telephone=no">
   <title>atem</title>
   <link rel="manifest" href="manifest.json">
-  <link rel="icon" href="icon-192.png" type="image/png">
-  <link rel="apple-touch-icon" href="icon-192.png">
   <style>
-    :root {
-      --bg: #fafafa;
-      --text: #1a1a1a;
-      --line: #1a1a1a;
-      --line-opacity: 0.3;
-      --thought-bg: transparent;
-      --thought-bg-active: rgba(0,0,0,0.04);
-      --thought-bg-source: rgba(0,0,0,0.08);
-      --accent: #007aff;
-      --danger: #ff3b30;
-      --sat: env(safe-area-inset-top, 0px);
-      --sab: env(safe-area-inset-bottom, 0px);
-      --sal: env(safe-area-inset-left, 0px);
-      --sar: env(safe-area-inset-right, 0px);
-    }
-    
-    @media (prefers-color-scheme: dark) {
-      :root:not(.light) {
-        --bg: #0a0a0a;
-        --text: #e5e5e5;
-        --line: #e5e5e5;
-        --line-opacity: 0.25;
-        --thought-bg-active: rgba(255,255,255,0.06);
-        --thought-bg-source: rgba(255,255,255,0.12);
-      }
-    }
-    
-    :root.dark {
-      --bg: #0a0a0a;
-      --text: #e5e5e5;
-      --line: #e5e5e5;
-      --line-opacity: 0.25;
-      --thought-bg-active: rgba(255,255,255,0.06);
-      --thought-bg-source: rgba(255,255,255,0.12);
-    }
-    
-    :root.light {
-      --bg: #fafafa;
-      --text: #1a1a1a;
-      --line: #1a1a1a;
-      --line-opacity: 0.3;
-      --thought-bg-active: rgba(0,0,0,0.04);
-      --thought-bg-source: rgba(0,0,0,0.08);
-    }
-    
     * {
-      box-sizing: border-box;
       margin: 0;
       padding: 0;
+      box-sizing: border-box;
       -webkit-tap-highlight-color: transparent;
       -webkit-touch-callout: none;
-      -webkit-user-select: none;
-      user-select: none;
     }
     
-    html { 
-      height: 100%; 
-      background: var(--bg);
-      transition: background 0.3s ease;
-    }
-    
-    body {
-      overflow: hidden;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-      background: var(--bg);
-      color: var(--text);
+    html, body {
       height: 100%;
-      width: 100%;
-      position: fixed;
+      overflow: hidden;
+      background: #000;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
       touch-action: none;
-      -webkit-font-smoothing: antialiased;
-      transition: background 0.3s ease, color 0.3s ease;
     }
     
     #canvas {
-      position: absolute;
-      inset: 0;
-      overflow: hidden;
+      width: 100%;
+      height: 100%;
+      display: block;
     }
     
-    #world {
-      position: absolute;
-      transform-origin: 0 0;
-      will-change: transform;
-    }
-    
-    #lines {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 1px;
-      height: 1px;
-      overflow: visible;
-      pointer-events: none;
-      z-index: 0;
-    }
-    
-    .line {
-      fill: none;
-      stroke: var(--line);
-      stroke-width: 1.5;
-      stroke-linecap: round;
-      opacity: var(--line-opacity);
-      transition: opacity 0.2s ease, stroke 0.2s ease;
-      cursor: pointer;
-      pointer-events: stroke;
-    }
-    
-    .line:hover {
-      opacity: 0.6;
-      stroke-width: 3;
-    }
-    
-    #pending {
-      fill: none;
-      stroke: var(--accent);
-      stroke-width: 2;
-      stroke-linecap: round;
-      stroke-dasharray: 6 6;
-      opacity: 0.6;
-      visibility: hidden;
-    }
-    
-    .t {
-      position: absolute;
-      min-width: 44px;
-      min-height: 44px;
-      max-width: min(480px, 85vw);
+    /* Text editor overlay */
+    #editor {
+      position: fixed;
+      display: none;
+      background: rgba(0, 0, 0, 0.95);
+      border: 1px solid rgba(96, 165, 250, 0.3);
+      border-radius: 12px;
       padding: 14px 18px;
-      font-size: 18px;
-      font-weight: 400;
-      line-height: 1.5;
-      letter-spacing: -0.01em;
-      color: var(--text);
-      background: var(--thought-bg);
-      border: none;
+      color: #fff;
+      font-size: 17px;
+      font-family: inherit;
+      min-width: 140px;
+      max-width: 300px;
       outline: none;
       resize: none;
-      overflow: hidden;
-      overflow-wrap: break-word;
-      white-space: pre-wrap;
-      z-index: 1;
-      -webkit-user-select: text;
-      user-select: text;
-      cursor: text;
-      border-radius: 8px;
-      transition: background 0.15s ease, opacity 0.15s ease, transform 0.2s ease, box-shadow 0.2s ease;
+      line-height: 1.5;
+      z-index: 1000;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 30px rgba(96, 165, 250, 0.15);
     }
     
-    .t:empty::before { content: ''; }
-    .t:focus { background: var(--thought-bg-active); }
-    .t.dragging { opacity: 0.6; z-index: 100; }
-    .t.connecting { 
-      background: var(--thought-bg-active);
-      box-shadow: 0 0 0 2px var(--accent);
+    #editor::placeholder {
+      color: rgba(255, 255, 255, 0.25);
     }
     
-    /* Source thought - pulsing glow while in connect mode */
-    .t.source { 
-      background: var(--thought-bg-source);
-      box-shadow: 0 0 0 2px var(--accent);
-    }
-    
-    /* Long-press visual feedback - grows border */
-    .t.holding {
-      box-shadow: 0 0 0 2px var(--accent);
-      animation: holdPulse 0.3s ease-out;
-    }
-    
-    @keyframes holdPulse {
-      0% { box-shadow: 0 0 0 0 var(--accent); }
-      100% { box-shadow: 0 0 0 2px var(--accent); }
-    }
-    
-    .t.deleting {
-      opacity: 0;
-      transform: scale(0.8);
-      transition: opacity 0.2s ease, transform 0.2s ease;
+    /* Daily prompt */
+    #prompt {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      z-index: 900;
       pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+    
+    #prompt.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    
+    #prompt-text {
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 20px;
+      font-weight: 300;
+      letter-spacing: 0.02em;
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+    
+    #prompt-dismiss {
+      color: rgba(255, 255, 255, 0.3);
+      font-size: 13px;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+    
+    #prompt-dismiss:hover {
+      color: rgba(255, 255, 255, 0.6);
+    }
+    
+    /* Stats panel */
+    #stats {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      color: rgba(255, 255, 255, 0.25);
+      font-size: 11px;
+      font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+      letter-spacing: 0.05em;
+      z-index: 100;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    
+    #stats span {
+      margin-right: 16px;
+    }
+    
+    /* Menu button */
+    #menu-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    
+    #menu-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+    
+    #menu-btn svg {
+      width: 18px;
+      height: 18px;
+      fill: rgba(255, 255, 255, 0.5);
+    }
+    
+    /* Menu panel */
+    #menu {
+      position: fixed;
+      bottom: 70px;
+      right: 20px;
+      background: rgba(10, 10, 10, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 8px 0;
+      min-width: 180px;
+      z-index: 1001;
+      display: none;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    }
+    
+    #menu.open { display: block; }
+    
+    .menu-item {
+      padding: 12px 18px;
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    
+    .menu-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+    }
+    
+    .menu-item.danger {
+      color: #ef4444;
+    }
+    
+    .menu-divider {
+      height: 1px;
+      background: rgba(255, 255, 255, 0.08);
+      margin: 6px 0;
     }
     
     /* Sync indicator */
     #sync {
       position: fixed;
-      top: calc(12px + var(--sat));
-      right: calc(12px + var(--sar));
+      top: 16px;
+      right: 16px;
       width: 6px;
       height: 6px;
       border-radius: 50%;
-      background: var(--text);
+      background: #60a5fa;
       opacity: 0;
-      transition: opacity 0.3s ease;
-      z-index: 1000;
-      pointer-events: none;
-    }
-    #sync.saving { opacity: 0.4; }
-    #sync.saved { opacity: 0.2; }
-    #sync.saved.fade { opacity: 0; }
-    
-    /* Controls - bottom right cluster */
-    .controls {
-      position: fixed;
-      bottom: calc(16px + var(--sab));
-      right: calc(16px + var(--sar));
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
+      transition: opacity 0.3s;
       z-index: 1000;
     }
+    #sync.saving { opacity: 0.6; }
+    #sync.saved { opacity: 0.3; }
     
-    .ctrl-btn {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background: var(--thought-bg-active);
-      border: none;
-      cursor: pointer;
-      opacity: 0.5;
-      transition: opacity 0.2s ease, background 0.2s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .ctrl-btn:hover, .ctrl-btn:active { opacity: 0.8; }
-    .ctrl-btn svg {
-      width: 18px;
-      height: 18px;
-      fill: var(--text);
-    }
-    
-    /* Dev menu */
-    #dev-menu {
-      position: fixed;
-      bottom: calc(70px + var(--sab));
-      right: calc(16px + var(--sar));
-      background: var(--bg);
-      border: 1px solid var(--thought-bg-active);
-      border-radius: 12px;
-      padding: 8px 0;
-      min-width: 180px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-      z-index: 1001;
-      display: none;
-    }
-    #dev-menu.open { display: block; }
-    
-    .dev-item {
-      padding: 10px 16px;
-      font-size: 14px;
-      color: var(--text);
-      cursor: pointer;
-      transition: background 0.1s ease;
-    }
-    .dev-item:hover { background: var(--thought-bg-active); }
-    .dev-item.danger { color: var(--danger); }
-    .dev-item.disabled { opacity: 0.4; pointer-events: none; }
-    
-    .dev-divider {
-      height: 1px;
-      background: var(--thought-bg-active);
-      margin: 4px 0;
-    }
-    
-    .dev-stats {
-      padding: 8px 16px;
-      font-size: 11px;
-      color: var(--text);
-      opacity: 0.5;
-      font-family: monospace;
-    }
-    
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(4px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .t.new { animation: fadeIn 0.2s ease-out; }
-    
-    /* Toast notifications */
+    /* Toast */
     #toast {
       position: fixed;
-      bottom: calc(80px + var(--sab));
+      bottom: 80px;
       left: 50%;
       transform: translateX(-50%) translateY(20px);
-      background: var(--text);
-      color: var(--bg);
+      background: rgba(255, 255, 255, 0.95);
+      color: #000;
       padding: 10px 20px;
       border-radius: 20px;
       font-size: 14px;
       opacity: 0;
-      transition: opacity 0.2s ease, transform 0.2s ease;
+      transition: opacity 0.2s, transform 0.2s;
       z-index: 2000;
       pointer-events: none;
     }
@@ -315,930 +223,1036 @@
   </style>
 </head>
 <body>
+  <canvas id="canvas"></canvas>
+  <textarea id="editor" placeholder="think..." rows="1"></textarea>
+  
+  <div id="prompt">
+    <div id="prompt-text"></div>
+    <div id="prompt-dismiss">tap anywhere to begin</div>
+  </div>
+  
+  <div id="stats">
+    <span id="stat-thoughts">0 thoughts</span>
+    <span id="stat-connections">0 connections</span>
+  </div>
+  
+  <button id="menu-btn">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+  </button>
+  
+  <div id="menu">
+    <div class="menu-item" id="menu-export">Export JSON</div>
+    <div class="menu-item" id="menu-import">Import JSON</div>
+    <div class="menu-divider"></div>
+    <div class="menu-item" id="menu-reset-view">Reset View</div>
+    <div class="menu-item" id="menu-new-prompt">New Prompt</div>
+    <div class="menu-divider"></div>
+    <div class="menu-item danger" id="menu-clear">Clear All</div>
+  </div>
+  
   <div id="sync"></div>
   <div id="toast"></div>
   
-  <div class="controls">
-    <button class="ctrl-btn" id="btn-home" aria-label="Fit all">
-      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-    </button>
-    <button class="ctrl-btn" id="btn-theme" aria-label="Toggle theme">
-      <svg viewBox="0 0 24 24" id="theme-icon"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/></svg>
-    </button>
-    <button class="ctrl-btn" id="btn-menu" aria-label="Menu">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
-    </button>
-  </div>
-  
-  <div id="dev-menu">
-    <div class="dev-stats" id="stats"></div>
-    <div class="dev-divider"></div>
-    <div class="dev-item" id="menu-export">Export as Image</div>
-    <div class="dev-item" id="menu-export-json">Export JSON</div>
-    <div class="dev-item" id="menu-import">Import JSON</div>
-    <div class="dev-divider"></div>
-    <div class="dev-item" id="menu-center">Center View</div>
-    <div class="dev-item" id="menu-fit">Fit All Thoughts</div>
-    <div class="dev-divider"></div>
-    <div class="dev-item danger" id="menu-clear">Clear All</div>
-  </div>
-  
-  <div id="canvas">
-    <div id="world">
-      <svg id="lines">
-        <path id="pending" d="M0,0"/>
-      </svg>
-    </div>
-  </div>
-  
   <input type="file" id="import-input" accept=".json" style="display:none">
 
-<script>
-(() => {
-  'use strict';
-  
-  // ═══════════════════════════════════════════════════════════════
-  // Config
-  // ═══════════════════════════════════════════════════════════════
-  
-  const STORAGE_KEY = 'atem';
-  const DRAG_THRESHOLD = 8;
-  const LONG_PRESS_MS = 300;
-  const WORLD_SIZE = 30000;
-  const WORLD_CENTER = WORLD_SIZE / 2;
-  const MIN_SCALE = 0.15;
-  const MAX_SCALE = 4;
-  const SAVE_DEBOUNCE = 400;
-  const FLICK_VELOCITY = 1.5;
-  const DOUBLE_TAP_MS = 300;
-  const MOMENTUM_FRICTION = 0.92;
-  
-  // ═══════════════════════════════════════════════════════════════
-  // State
-  // ═══════════════════════════════════════════════════════════════
-  
-  let state = { 
-    thoughts: [], 
-    links: [], 
-    view: { x: WORLD_CENTER, y: WORLD_CENTER, scale: 1 },
-    theme: null
-  };
-  let view = { x: WORLD_CENTER, y: WORLD_CENTER, scale: 1 };
-  let interaction = null;
-  let pinch = null;
-  let saveTimeout = null;
-  let animationFrame = null;
-  let velocityHistory = [];
-  let lastTapTime = 0;
-  let lastTapTarget = null;
-  let menuOpen = false;
-  
-  // ═══════════════════════════════════════════════════════════════
-  // DOM
-  // ═══════════════════════════════════════════════════════════════
-  
-  const $ = s => document.querySelector(s);
-  const canvas = $('#canvas');
-  const world = $('#world');
-  const linesEl = $('#lines');
-  const pendingLine = $('#pending');
-  const syncDot = $('#sync');
-  const toast = $('#toast');
-  const themeColorMeta = $('#theme-color');
-  const themeIcon = $('#theme-icon');
-  const devMenu = $('#dev-menu');
-  const statsEl = $('#stats');
-  
-  // ═══════════════════════════════════════════════════════════════
-  // Utils
-  // ═══════════════════════════════════════════════════════════════
-  
-  const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-  const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
-  const lerp = (a, b, t) => a + (b - a) * t;
-  
-  const toWorld = (sx, sy) => ({
-    x: (sx / view.scale) + view.x - (window.innerWidth / 2 / view.scale),
-    y: (sy / view.scale) + view.y - (window.innerHeight / 2 / view.scale)
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+// ════════════════════════════════════════════════════════════════
+// Config
+// ════════════════════════════════════════════════════════════════
+
+const STORAGE_KEY = 'atem3d';
+const HOLD_MS = 300;
+const FLOAT_INTENSITY = 0.015;
+const FLOAT_SPEED = 0.0008;
+const MOMENTUM_FRICTION = 0.94;
+const MOMENTUM_MIN = 0.01;
+
+// ════════════════════════════════════════════════════════════════
+// Daily Prompts
+// ════════════════════════════════════════════════════════════════
+
+const PROMPTS = [
+  "what's on your mind?",
+  "what did you notice today?",
+  "what's unresolved?",
+  "what are you avoiding?",
+  "what would make today good?",
+  "what's the question you're not asking?",
+  "where is your attention?",
+  "what's changing?",
+  "what are you grateful for?",
+  "what needs to be said?",
+  "what are you holding onto?",
+  "what would you do if you weren't afraid?",
+  "what's the simplest next step?",
+  "who are you becoming?",
+  "what pattern do you see?",
+  "what's the connection you're missing?",
+  "what deserves more attention?",
+  "what's ready to let go?",
+  "what's emerging?",
+  "what do you know that you're pretending not to know?"
+];
+
+// ════════════════════════════════════════════════════════════════
+// State
+// ════════════════════════════════════════════════════════════════
+
+let state = {
+  thoughts: [],
+  connections: [],
+  camera: { x: 0, y: 0, z: 30 },
+  lastPromptDate: null
+};
+
+// ════════════════════════════════════════════════════════════════
+// DOM
+// ════════════════════════════════════════════════════════════════
+
+const canvas = document.getElementById('canvas');
+const editor = document.getElementById('editor');
+const syncDot = document.getElementById('sync');
+const toast = document.getElementById('toast');
+const promptEl = document.getElementById('prompt');
+const promptText = document.getElementById('prompt-text');
+const statsEl = document.getElementById('stats');
+const statThoughts = document.getElementById('stat-thoughts');
+const statConnections = document.getElementById('stat-connections');
+const menuBtn = document.getElementById('menu-btn');
+const menu = document.getElementById('menu');
+const importInput = document.getElementById('import-input');
+
+// ════════════════════════════════════════════════════════════════
+// Three.js Setup
+// ════════════════════════════════════════════════════════════════
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x000000);
+
+// Subtle fog for depth
+scene.fog = new THREE.Fog(0x000000, 30, 100);
+
+const camera = new THREE.PerspectiveCamera(
+  60,
+  window.innerWidth / window.innerHeight,
+  0.1,
+  1000
+);
+camera.position.set(0, 0, 30);
+
+const renderer = new THREE.WebGLRenderer({ 
+  canvas, 
+  antialias: true,
+  alpha: false
+});
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+// Orbit controls
+const controls = new OrbitControls(camera, canvas);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.rotateSpeed = 0.5;
+controls.zoomSpeed = 0.8;
+controls.panSpeed = 0.5;
+controls.minDistance = 5;
+controls.maxDistance = 100;
+
+// Lighting
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+scene.add(ambientLight);
+
+const pointLight = new THREE.PointLight(0xffffff, 0.8);
+pointLight.position.set(10, 20, 15);
+scene.add(pointLight);
+
+const pointLight2 = new THREE.PointLight(0x60a5fa, 0.3);
+pointLight2.position.set(-15, -10, 10);
+scene.add(pointLight2);
+
+// ════════════════════════════════════════════════════════════════
+// Thought Management
+// ════════════════════════════════════════════════════════════════
+
+const thoughtMeshes = new Map();
+const thoughtData = new Map(); // Extra runtime data per thought
+const raycaster = new THREE.Raycaster();
+const pointer = new THREE.Vector2();
+
+function createThoughtMesh(thought) {
+  const geometry = new THREE.SphereGeometry(1, 32, 32);
+  const material = new THREE.MeshStandardMaterial({
+    color: 0x1e293b,
+    roughness: 0.6,
+    metalness: 0.15,
+    emissive: 0x60a5fa,
+    emissiveIntensity: 0.08
   });
   
-  const showToast = (msg, duration = 2000) => {
-    toast.textContent = msg;
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), duration);
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.position.set(thought.x, thought.y, thought.z);
+  mesh.userData.id = thought.id;
+  mesh.userData.type = 'thought';
+  
+  scene.add(mesh);
+  thoughtMeshes.set(thought.id, mesh);
+  
+  // Runtime data for animation
+  thoughtData.set(thought.id, {
+    floatOffset: Math.random() * Math.PI * 2,
+    basePosition: new THREE.Vector3(thought.x, thought.y, thought.z),
+    velocity: new THREE.Vector3(0, 0, 0),
+    targetEmissive: 0.08
+  });
+  
+  return mesh;
+}
+
+function addThought(x, y, z, text = '') {
+  const thought = {
+    id: uid(),
+    x, y, z,
+    text,
+    created: Date.now(),
+    updated: Date.now()
   };
   
-  // ═══════════════════════════════════════════════════════════════
-  // Theme
-  // ═══════════════════════════════════════════════════════════════
+  state.thoughts.push(thought);
+  createThoughtMesh(thought);
+  updateStats();
+  save();
   
-  const isDarkMode = () => {
-    return document.documentElement.classList.contains('dark') ||
-      (!state.theme && window.matchMedia('(prefers-color-scheme: dark)').matches);
-  };
-  
-  const applyTheme = () => {
-    const root = document.documentElement;
-    root.classList.remove('light', 'dark');
-    if (state.theme) root.classList.add(state.theme);
-    const dark = isDarkMode();
-    themeColorMeta.content = dark ? '#0a0a0a' : '#fafafa';
-    // Update icon
-    themeIcon.innerHTML = dark 
-      ? '<path d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0-3a1 1 0 0 0 1-1V1a1 1 0 0 0-2 0v2a1 1 0 0 0 1 1zm0 18a1 1 0 0 0-1 1v2a1 1 0 0 0 2 0v-2a1 1 0 0 0-1-1zM4.22 5.64a1 1 0 0 0 1.42-1.42l-1.43-1.4a1 1 0 0 0-1.4 1.4l1.41 1.42zm15.56 12.72a1 1 0 0 0-1.42 1.42l1.43 1.4a1 1 0 0 0 1.4-1.4l-1.41-1.42zM4 12a1 1 0 0 0-1-1H1a1 1 0 0 0 0 2h2a1 1 0 0 0 1-1zm18 0a1 1 0 0 0-1-1h-2a1 1 0 0 0 0 2h2a1 1 0 0 0 1-1zM5.64 19.78a1 1 0 0 0-1.42-1.42l-1.4 1.43a1 1 0 0 0 1.4 1.4l1.42-1.41zM18.36 4.22a1 1 0 0 0 1.42 1.42l1.4-1.43a1 1 0 0 0-1.4-1.4l-1.42 1.41z"/>'
-      : '<path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/>';
-  };
-  
-  const toggleTheme = () => {
-    state.theme = isDarkMode() ? 'light' : 'dark';
-    applyTheme();
+  return thought;
+}
+
+function updateThought(id, updates) {
+  const thought = state.thoughts.find(t => t.id === id);
+  if (thought) {
+    Object.assign(thought, updates, { updated: Date.now() });
+    
+    // Update base position if position changed
+    if (updates.x !== undefined || updates.y !== undefined || updates.z !== undefined) {
+      const data = thoughtData.get(id);
+      if (data) {
+        data.basePosition.set(thought.x, thought.y, thought.z);
+      }
+    }
+    
     save();
+  }
+}
+
+function removeThought(id) {
+  const mesh = thoughtMeshes.get(id);
+  if (mesh) {
+    scene.remove(mesh);
+    mesh.geometry.dispose();
+    mesh.material.dispose();
+    thoughtMeshes.delete(id);
+    thoughtData.delete(id);
+  }
+  state.thoughts = state.thoughts.filter(t => t.id !== id);
+  state.connections = state.connections.filter(c => c.from !== id && c.to !== id);
+  renderConnections();
+  updateStats();
+  save();
+}
+
+// ════════════════════════════════════════════════════════════════
+// Connection Management
+// ════════════════════════════════════════════════════════════════
+
+const connectionLines = new Map();
+let pendingLine = null;
+
+function addConnection(fromId, toId) {
+  if (fromId === toId) return null;
+  
+  const connection = {
+    id: uid(),
+    from: fromId,
+    to: toId,
+    created: Date.now()
   };
   
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-    if (!state.theme) applyTheme();
+  state.connections.push(connection);
+  renderConnections();
+  updateStats();
+  save();
+  
+  return connection;
+}
+
+function getConnectionKey(fromId, toId) {
+  return [fromId, toId].sort().join('-');
+}
+
+function getConnectionDensity(fromId, toId) {
+  const key = getConnectionKey(fromId, toId);
+  return state.connections.filter(c => 
+    getConnectionKey(c.from, c.to) === key
+  ).length;
+}
+
+function renderConnections() {
+  // Clear existing
+  connectionLines.forEach(line => {
+    scene.remove(line);
+    line.geometry.dispose();
+    line.material.dispose();
+  });
+  connectionLines.clear();
+  
+  // Group by pair
+  const pairs = new Map();
+  state.connections.forEach(conn => {
+    const key = getConnectionKey(conn.from, conn.to);
+    if (!pairs.has(key)) {
+      pairs.set(key, { from: conn.from, to: conn.to, count: 0 });
+    }
+    pairs.get(key).count++;
   });
   
-  // ═══════════════════════════════════════════════════════════════
-  // Persistence
-  // ═══════════════════════════════════════════════════════════════
+  // Create lines
+  pairs.forEach((pair, key) => {
+    const fromMesh = thoughtMeshes.get(pair.from);
+    const toMesh = thoughtMeshes.get(pair.to);
+    if (!fromMesh || !toMesh) return;
+    
+    const line = createConnectionLine(fromMesh, toMesh, pair.count);
+    line.userData.from = pair.from;
+    line.userData.to = pair.to;
+    line.userData.density = pair.count;
+    connectionLines.set(key, line);
+    scene.add(line);
+  });
+}
+
+function createConnectionLine(fromMesh, toMesh, density) {
+  const curve = new THREE.LineCurve3(
+    fromMesh.position.clone(),
+    toMesh.position.clone()
+  );
   
-  const load = () => {
+  // More points for smoother line
+  const points = curve.getPoints(20);
+  const geometry = new THREE.BufferGeometry().setFromPoints(points);
+  
+  // Density affects visual
+  const opacity = Math.min(0.2 + density * 0.12, 0.7);
+  const emissiveBoost = Math.min(density * 0.1, 0.4);
+  
+  const material = new THREE.LineBasicMaterial({
+    color: new THREE.Color(0x60a5fa).multiplyScalar(0.8 + emissiveBoost),
+    transparent: true,
+    opacity: opacity
+  });
+  
+  return new THREE.Line(geometry, material);
+}
+
+function updateConnectionPositions() {
+  connectionLines.forEach((line) => {
+    const fromMesh = thoughtMeshes.get(line.userData.from);
+    const toMesh = thoughtMeshes.get(line.userData.to);
+    if (!fromMesh || !toMesh) return;
+    
+    const positions = line.geometry.attributes.position.array;
+    const fromPos = fromMesh.position;
+    const toPos = toMesh.position;
+    
+    // Interpolate all points along the line
+    const count = positions.length / 3;
+    for (let i = 0; i < count; i++) {
+      const t = i / (count - 1);
+      positions[i * 3] = fromPos.x + (toPos.x - fromPos.x) * t;
+      positions[i * 3 + 1] = fromPos.y + (toPos.y - fromPos.y) * t;
+      positions[i * 3 + 2] = fromPos.z + (toPos.z - fromPos.z) * t;
+    }
+    line.geometry.attributes.position.needsUpdate = true;
+  });
+}
+
+function createPendingLine() {
+  const geometry = new THREE.BufferGeometry().setFromPoints([
+    new THREE.Vector3(), new THREE.Vector3()
+  ]);
+  const material = new THREE.LineDashedMaterial({
+    color: 0x60a5fa,
+    transparent: true,
+    opacity: 0.6,
+    dashSize: 0.5,
+    gapSize: 0.3
+  });
+  const line = new THREE.Line(geometry, material);
+  line.computeLineDistances();
+  line.visible = false;
+  scene.add(line);
+  return line;
+}
+
+function updatePendingLine(fromPos, toPos) {
+  if (!pendingLine) return;
+  const positions = pendingLine.geometry.attributes.position.array;
+  positions[0] = fromPos.x;
+  positions[1] = fromPos.y;
+  positions[2] = fromPos.z;
+  positions[3] = toPos.x;
+  positions[4] = toPos.y;
+  positions[5] = toPos.z;
+  pendingLine.geometry.attributes.position.needsUpdate = true;
+  pendingLine.computeLineDistances();
+}
+
+// ════════════════════════════════════════════════════════════════
+// Persistence
+// ════════════════════════════════════════════════════════════════
+
+let saveTimeout = null;
+
+function save() {
+  clearTimeout(saveTimeout);
+  syncDot.className = 'saving';
+  
+  saveTimeout = setTimeout(() => {
+    state.camera = {
+      x: camera.position.x,
+      y: camera.position.y,
+      z: camera.position.z
+    };
+    
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const p = JSON.parse(raw);
-        state.thoughts = p.thoughts || [];
-        state.links = p.links || [];
-        state.view = p.view || { x: WORLD_CENTER, y: WORLD_CENTER, scale: 1 };
-        state.theme = p.theme || null;
-        view = { ...state.view };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      syncDot.className = 'saved';
+      setTimeout(() => syncDot.className = '', 1500);
+    } catch (e) {
+      console.warn('Save failed:', e);
+    }
+  }, 400);
+}
+
+function load() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const saved = JSON.parse(raw);
+      state.thoughts = saved.thoughts || [];
+      state.connections = saved.connections || [];
+      state.camera = saved.camera || { x: 0, y: 0, z: 30 };
+      state.lastPromptDate = saved.lastPromptDate || null;
+      
+      camera.position.set(state.camera.x, state.camera.y, state.camera.z);
+      
+      state.thoughts.forEach(t => createThoughtMesh(t));
+      renderConnections();
+      updateStats();
+    }
+  } catch (e) {
+    console.warn('Load failed:', e);
+  }
+}
+
+// ════════════════════════════════════════════════════════════════
+// Animation - Life
+// ════════════════════════════════════════════════════════════════
+
+let time = 0;
+
+function animateThoughts(delta) {
+  time += delta;
+  
+  thoughtMeshes.forEach((mesh, id) => {
+    const data = thoughtData.get(id);
+    if (!data) return;
+    
+    // Gentle floating
+    const floatX = Math.sin(time * FLOAT_SPEED + data.floatOffset) * FLOAT_INTENSITY;
+    const floatY = Math.cos(time * FLOAT_SPEED * 1.3 + data.floatOffset) * FLOAT_INTENSITY;
+    const floatZ = Math.sin(time * FLOAT_SPEED * 0.7 + data.floatOffset) * FLOAT_INTENSITY * 0.5;
+    
+    // Apply momentum if any
+    if (data.velocity.lengthSq() > MOMENTUM_MIN * MOMENTUM_MIN) {
+      data.basePosition.add(data.velocity);
+      data.velocity.multiplyScalar(MOMENTUM_FRICTION);
+      
+      // Update state
+      const thought = state.thoughts.find(t => t.id === id);
+      if (thought) {
+        thought.x = data.basePosition.x;
+        thought.y = data.basePosition.y;
+        thought.z = data.basePosition.z;
       }
-    } catch (e) { console.warn('Load failed:', e); }
-  };
-  
-  const save = () => {
-    clearTimeout(saveTimeout);
-    syncDot.className = 'saving';
-    saveTimeout = setTimeout(() => {
-      state.view = { ...view };
-      // Clean orphan links
-      state.links = state.links.filter(l => 
-        state.thoughts.some(t => t.id === l.a) && 
-        state.thoughts.some(t => t.id === l.b)
-      );
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-        syncDot.className = 'saved';
-        setTimeout(() => syncDot.classList.add('fade'), 1000);
-      } catch (e) { console.warn('Save failed:', e); }
-    }, SAVE_DEBOUNCE);
-  };
-  
-  // ═══════════════════════════════════════════════════════════════
-  // View
-  // ═══════════════════════════════════════════════════════════════
-  
-  const applyView = () => {
-    const tx = (window.innerWidth / 2) - (view.x * view.scale);
-    const ty = (window.innerHeight / 2) - (view.y * view.scale);
-    world.style.transform = `translate(${tx}px, ${ty}px) scale(${view.scale})`;
-  };
-  
-  const panTo = (targetX, targetY, targetScale, duration = 300) => {
-    const startX = view.x, startY = view.y, startScale = view.scale;
-    const startTime = performance.now();
-    
-    const animate = (now) => {
-      const t = Math.min(1, (now - startTime) / duration);
-      const ease = 1 - Math.pow(1 - t, 3);
-      view.x = lerp(startX, targetX, ease);
-      view.y = lerp(startY, targetY, ease);
-      view.scale = lerp(startScale, targetScale, ease);
-      applyView();
-      if (t < 1) animationFrame = requestAnimationFrame(animate);
-      else save();
-    };
-    
-    cancelAnimationFrame(animationFrame);
-    animationFrame = requestAnimationFrame(animate);
-  };
-  
-  const centerView = () => {
-    panTo(WORLD_CENTER, WORLD_CENTER, 1);
-  };
-  
-  const fitAll = () => {
-    if (state.thoughts.length === 0) {
-      centerView();
-      return;
     }
     
-    // Calculate bounds
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-    state.thoughts.forEach(t => {
-      const el = world.querySelector(`[data-id="${t.id}"]`);
-      const w = el ? el.offsetWidth : 100;
-      const h = el ? el.offsetHeight : 50;
-      minX = Math.min(minX, t.x);
-      minY = Math.min(minY, t.y);
-      maxX = Math.max(maxX, t.x + w);
-      maxY = Math.max(maxY, t.y + h);
-    });
+    // Final position = base + float
+    mesh.position.set(
+      data.basePosition.x + floatX,
+      data.basePosition.y + floatY,
+      data.basePosition.z + floatZ
+    );
     
-    const padding = 60;
-    const boundsW = maxX - minX + padding * 2;
-    const boundsH = maxY - minY + padding * 2;
-    const centerX = (minX + maxX) / 2;
-    const centerY = (minY + maxY) / 2;
-    
-    const scaleX = window.innerWidth / boundsW;
-    const scaleY = window.innerHeight / boundsH;
-    const newScale = clamp(Math.min(scaleX, scaleY), MIN_SCALE, 2);
-    
-    panTo(centerX, centerY, newScale);
-  };
-  
-  const focusThought = (thoughtId) => {
-    const t = state.thoughts.find(t => t.id === thoughtId);
-    const el = world.querySelector(`[data-id="${thoughtId}"]`);
-    if (!t || !el) return;
-    const cx = t.x + el.offsetWidth / 2;
-    const cy = t.y + el.offsetHeight / 2;
-    panTo(cx, cy, view.scale > 1.2 ? 1 : 1.5);
-  };
-  
-  // ═══════════════════════════════════════════════════════════════
-  // Rendering
-  // ═══════════════════════════════════════════════════════════════
-  
-  const render = () => {
-    world.querySelectorAll('.t').forEach(el => el.remove());
-    state.thoughts.forEach(t => createThoughtEl(t));
-    // Defer line rendering to after elements have size
-    requestAnimationFrame(() => renderLines());
-    applyView();
-  };
-  
-  const createThoughtEl = t => {
-    const el = document.createElement('div');
-    el.className = 't';
-    el.contentEditable = 'true';
-    el.spellcheck = false;
-    el.autocapitalize = 'sentences';
-    el.dataset.id = t.id;
-    el.textContent = t.text;
-    el.style.left = t.x + 'px';
-    el.style.top = t.y + 'px';
-    setupThoughtEvents(el);
-    world.appendChild(el);
-    return el;
-  };
-  
-  const getCurvePath = (x1, y1, x2, y2) => {
-    if (isNaN(x1) || isNaN(y1) || isNaN(x2) || isNaN(y2)) return 'M0,0';
-    const midX = (x1 + x2) / 2, midY = (y1 + y2) / 2;
-    const dx = x2 - x1, dy = y2 - y1;
-    const dist = Math.hypot(dx, dy);
-    if (dist === 0) return `M${x1},${y1}`;
-    const curvature = Math.min(dist * 0.15, 50);
-    const nx = -dy / dist * curvature, ny = dx / dist * curvature;
-    return `M${x1},${y1} Q${midX + nx},${midY + ny} ${x2},${y2}`;
-  };
-  
-  const renderLines = () => {
-    linesEl.querySelectorAll('.line').forEach(el => el.remove());
-    state.links.forEach(link => {
-      const elA = world.querySelector(`[data-id="${link.a}"]`);
-      const elB = world.querySelector(`[data-id="${link.b}"]`);
-      if (!elA || !elB) return;
-      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      path.classList.add('line');
-      path.dataset.id = link.id;
-      path.dataset.a = link.a;
-      path.dataset.b = link.b;
-      positionLine(path, elA, elB);
-      path.addEventListener('click', onLineClick);
-      linesEl.appendChild(path);
-    });
-  };
-  
-  const positionLine = (path, elA, elB) => {
-    const ax = parseFloat(elA.style.left) + elA.offsetWidth / 2;
-    const ay = parseFloat(elA.style.top) + elA.offsetHeight / 2;
-    const bx = parseFloat(elB.style.left) + elB.offsetWidth / 2;
-    const by = parseFloat(elB.style.top) + elB.offsetHeight / 2;
-    path.setAttribute('d', getCurvePath(ax, ay, bx, by));
-  };
-  
-  const updateLines = tid => {
-    const el = world.querySelector(`[data-id="${tid}"]`);
-    if (!el) return;
-    state.links.forEach(link => {
-      if (link.a !== tid && link.b !== tid) return;
-      const pathEl = linesEl.querySelector(`[data-id="${link.id}"]`);
-      if (!pathEl) return;
-      const otherId = link.a === tid ? link.b : link.a;
-      const otherEl = world.querySelector(`[data-id="${otherId}"]`);
-      if (otherEl) positionLine(pathEl, el, otherEl);
-    });
-  };
-  
-  const updatePendingLine = (x1, y1, x2, y2) => {
-    pendingLine.setAttribute('d', getCurvePath(x1, y1, x2, y2));
-  };
-  
-  // ═══════════════════════════════════════════════════════════════
-  // CRUD
-  // ═══════════════════════════════════════════════════════════════
-  
-  const addThought = (x, y, text = '') => {
-    const t = { id: uid(), x, y, text, created: Date.now(), updated: Date.now() };
-    state.thoughts.push(t);
-    save();
-    const el = createThoughtEl(t);
-    el.classList.add('new');
-    setTimeout(() => el.classList.remove('new'), 200);
-    requestAnimationFrame(() => {
-      el.focus();
-      const sel = window.getSelection();
-      const range = document.createRange();
-      range.selectNodeContents(el);
-      range.collapse(false);
-      sel.removeAllRanges();
-      sel.addRange(range);
-    });
-    return t;
-  };
-  
-  const updateThought = (id, updates) => {
-    const t = state.thoughts.find(t => t.id === id);
-    if (t) { Object.assign(t, updates, { updated: Date.now() }); save(); }
-  };
-  
-  const removeThought = (id, animate = false) => {
-    const el = world.querySelector(`[data-id="${id}"]`);
-    const doRemove = () => {
-      state.thoughts = state.thoughts.filter(t => t.id !== id);
-      state.links = state.links.filter(l => l.a !== id && l.b !== id);
-      if (el) el.remove();
-      renderLines();
-      save();
-    };
-    if (animate && el) {
-      el.classList.add('deleting');
-      if (navigator.vibrate) navigator.vibrate(5);
-      setTimeout(doRemove, 200);
-    } else doRemove();
-  };
-  
-  const addLink = (aId, bId) => {
-    if (aId === bId) return;
-    if (state.links.some(l => (l.a === aId && l.b === bId) || (l.a === bId && l.b === aId))) return;
-    state.links.push({ id: uid(), a: aId, b: bId });
-    renderLines();
-    save();
-    if (navigator.vibrate) navigator.vibrate(5);
-  };
-  
-  const removeLink = (linkId) => {
-    state.links = state.links.filter(l => l.id !== linkId);
-    renderLines();
-    save();
-    showToast('Link removed');
-    if (navigator.vibrate) navigator.vibrate(5);
-  };
-  
-  const onLineClick = (e) => {
-    e.stopPropagation();
-    const linkId = e.target.dataset.id;
-    if (linkId && confirm('Remove this connection?')) {
-      removeLink(linkId);
-    }
-  };
-  
-  // ═══════════════════════════════════════════════════════════════
-  // Velocity
-  // ═══════════════════════════════════════════════════════════════
-  
-  const trackVelocity = (x, y) => {
-    const now = performance.now();
-    velocityHistory.push({ x, y, t: now });
-    while (velocityHistory.length > 0 && now - velocityHistory[0].t > 100) velocityHistory.shift();
-  };
-  
-  const getVelocity = () => {
-    if (velocityHistory.length < 2) return { vx: 0, vy: 0 };
-    const first = velocityHistory[0], last = velocityHistory[velocityHistory.length - 1];
-    const dt = last.t - first.t;
-    if (dt === 0) return { vx: 0, vy: 0 };
-    return { vx: (last.x - first.x) / dt, vy: (last.y - first.y) / dt };
-  };
-  
-  const clearVelocity = () => { velocityHistory = []; };
-  
-  // ═══════════════════════════════════════════════════════════════
-  // Canvas Events
-  // ═══════════════════════════════════════════════════════════════
-  
-  canvas.addEventListener('pointerdown', e => {
-    if (e.target.classList.contains('t') || e.target.classList.contains('line')) return;
-    if (interaction) return;
-    e.preventDefault();
-    closeMenu();
-    canvas.setPointerCapture(e.pointerId);
-    clearVelocity();
-    interaction = {
-      type: 'pan',
-      pointerId: e.pointerId,
-      startScreen: { x: e.clientX, y: e.clientY },
-      startView: { x: view.x, y: view.y },
-      moved: false
-    };
+    // Smooth emissive transition
+    const currentEmissive = mesh.material.emissiveIntensity;
+    mesh.material.emissiveIntensity += (data.targetEmissive - currentEmissive) * 0.1;
   });
   
-  canvas.addEventListener('pointermove', e => {
-    if (!interaction || interaction.type !== 'pan' || interaction.pointerId !== e.pointerId) return;
-    const dx = e.clientX - interaction.startScreen.x;
-    const dy = e.clientY - interaction.startScreen.y;
-    if (Math.abs(dx) > DRAG_THRESHOLD || Math.abs(dy) > DRAG_THRESHOLD) interaction.moved = true;
-    if (interaction.moved) {
-      view.x = interaction.startView.x - dx / view.scale;
-      view.y = interaction.startView.y - dy / view.scale;
-      trackVelocity(e.clientX, e.clientY);
-      applyView();
-    }
+  // Update connection lines to follow thoughts
+  updateConnectionPositions();
+}
+
+// ════════════════════════════════════════════════════════════════
+// Interaction
+// ════════════════════════════════════════════════════════════════
+
+let isDragging = false;
+let draggedMesh = null;
+let dragPlane = new THREE.Plane();
+let dragOffset = new THREE.Vector3();
+let pointerDownTime = 0;
+let pointerDownPos = { x: 0, y: 0 };
+let pointerMoved = false;
+let editingThought = null;
+let lastDragPos = new THREE.Vector3();
+let lastDragTime = 0;
+
+// Connection state
+let isConnecting = false;
+let connectFromMesh = null;
+let holdTimer = null;
+
+function getIntersects(event) {
+  const rect = canvas.getBoundingClientRect();
+  const x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+  const y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+  
+  pointer.set(x, y);
+  raycaster.setFromCamera(pointer, camera);
+  
+  const meshes = Array.from(thoughtMeshes.values());
+  return raycaster.intersectObjects(meshes);
+}
+
+function get3DPosition(event, z = 0) {
+  const rect = canvas.getBoundingClientRect();
+  const x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+  const y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+  
+  pointer.set(x, y);
+  raycaster.setFromCamera(pointer, camera);
+  
+  const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), -z);
+  const target = new THREE.Vector3();
+  raycaster.ray.intersectPlane(plane, target);
+  
+  return target;
+}
+
+function onPointerDown(event) {
+  if (event.target !== canvas) return;
+  
+  // Dismiss prompt if showing
+  if (promptEl.classList.contains('show')) {
+    dismissPrompt();
+    return;
+  }
+  
+  pointerDownTime = Date.now();
+  pointerDownPos = { x: event.clientX, y: event.clientY };
+  pointerMoved = false;
+  
+  const intersects = getIntersects(event);
+  
+  if (intersects.length > 0) {
+    const mesh = intersects[0].object;
+    
+    controls.enabled = false;
+    isDragging = true;
+    draggedMesh = mesh;
+    
+    // Drag plane facing camera
+    const cameraDir = new THREE.Vector3();
+    camera.getWorldDirection(cameraDir);
+    dragPlane.setFromNormalAndCoplanarPoint(cameraDir.negate(), mesh.position);
+    
+    // Calculate offset
+    const intersectPoint = new THREE.Vector3();
+    raycaster.ray.intersectPlane(dragPlane, intersectPoint);
+    dragOffset.subVectors(mesh.position, intersectPoint);
+    
+    // For momentum calculation
+    lastDragPos.copy(mesh.position);
+    lastDragTime = Date.now();
+    
+    // Visual feedback
+    const data = thoughtData.get(mesh.userData.id);
+    if (data) data.targetEmissive = 0.3;
+    
+    // Hold timer for connection mode
+    holdTimer = setTimeout(() => {
+      if (!pointerMoved && draggedMesh) {
+        startConnecting(draggedMesh);
+      }
+    }, HOLD_MS);
+  }
+}
+
+function startConnecting(mesh) {
+  isConnecting = true;
+  connectFromMesh = mesh;
+  isDragging = false;
+  
+  // Visual feedback
+  const data = thoughtData.get(mesh.userData.id);
+  if (data) data.targetEmissive = 0.5;
+  mesh.material.emissive.setHex(0x60a5fa);
+  
+  // Show pending line
+  if (!pendingLine) pendingLine = createPendingLine();
+  pendingLine.visible = true;
+  updatePendingLine(mesh.position, mesh.position);
+  
+  if (navigator.vibrate) navigator.vibrate(10);
+}
+
+function endConnecting(targetMesh = null) {
+  if (connectFromMesh && targetMesh && targetMesh !== connectFromMesh) {
+    addConnection(connectFromMesh.userData.id, targetMesh.userData.id);
+    if (navigator.vibrate) navigator.vibrate(5);
+  }
+  
+  // Reset source
+  if (connectFromMesh) {
+    const data = thoughtData.get(connectFromMesh.userData.id);
+    if (data) data.targetEmissive = 0.08;
+    connectFromMesh.material.emissive.setHex(0x60a5fa);
+  }
+  
+  // Hide pending line
+  if (pendingLine) pendingLine.visible = false;
+  
+  // Reset all hover states
+  thoughtMeshes.forEach((mesh, id) => {
+    const data = thoughtData.get(id);
+    if (data) data.targetEmissive = 0.08;
+    mesh.material.emissive.setHex(0x60a5fa);
   });
   
-  canvas.addEventListener('pointerup', e => {
-    if (!interaction || interaction.type !== 'pan' || interaction.pointerId !== e.pointerId) return;
-    canvas.releasePointerCapture(e.pointerId);
-    if (!interaction.moved) {
-      addThought(toWorld(e.clientX, e.clientY).x, toWorld(e.clientX, e.clientY).y);
+  isConnecting = false;
+  connectFromMesh = null;
+}
+
+function onPointerMove(event) {
+  const dx = event.clientX - pointerDownPos.x;
+  const dy = event.clientY - pointerDownPos.y;
+  if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+    pointerMoved = true;
+    clearTimeout(holdTimer);
+  }
+  
+  if (isConnecting && connectFromMesh) {
+    const pos = get3DPosition(event, connectFromMesh.position.z);
+    updatePendingLine(connectFromMesh.position, pos);
+    
+    // Highlight potential target
+    const intersects = getIntersects(event);
+    thoughtMeshes.forEach((mesh, id) => {
+      if (mesh !== connectFromMesh) {
+        const data = thoughtData.get(id);
+        if (data) data.targetEmissive = 0.08;
+      }
+    });
+    
+    if (intersects.length > 0 && intersects[0].object !== connectFromMesh) {
+      const target = intersects[0].object;
+      const data = thoughtData.get(target.userData.id);
+      if (data) data.targetEmissive = 0.4;
+    }
+  } else if (isDragging && draggedMesh) {
+    const rect = canvas.getBoundingClientRect();
+    const x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    const y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+    
+    pointer.set(x, y);
+    raycaster.setFromCamera(pointer, camera);
+    
+    const intersectPoint = new THREE.Vector3();
+    if (raycaster.ray.intersectPlane(dragPlane, intersectPoint)) {
+      const newPos = intersectPoint.add(dragOffset);
+      
+      // Update base position directly
+      const data = thoughtData.get(draggedMesh.userData.id);
+      if (data) {
+        data.basePosition.copy(newPos);
+        data.velocity.set(0, 0, 0); // Reset velocity while dragging
+      }
+      
+      // For momentum: track position over time
+      const now = Date.now();
+      const dt = now - lastDragTime;
+      if (dt > 0) {
+        const vel = new THREE.Vector3().subVectors(newPos, lastDragPos).divideScalar(dt * 0.05);
+        lastDragPos.copy(newPos);
+        lastDragTime = now;
+        if (data) data.velocity.copy(vel);
+      }
+      
+      // Update state
+      const thought = state.thoughts.find(t => t.id === draggedMesh.userData.id);
+      if (thought) {
+        thought.x = newPos.x;
+        thought.y = newPos.y;
+        thought.z = newPos.z;
+      }
+    }
+  } else {
+    // Hover effect
+    const intersects = getIntersects(event);
+    thoughtMeshes.forEach((mesh, id) => {
+      const data = thoughtData.get(id);
+      if (data && mesh !== draggedMesh) {
+        data.targetEmissive = 0.08;
+      }
+    });
+    if (intersects.length > 0 && !isDragging) {
+      const data = thoughtData.get(intersects[0].object.userData.id);
+      if (data) data.targetEmissive = 0.25;
+    }
+  }
+}
+
+function onPointerUp(event) {
+  clearTimeout(holdTimer);
+  
+  const clickDuration = Date.now() - pointerDownTime;
+  const wasQuickTap = clickDuration < 200 && !pointerMoved;
+  
+  if (isConnecting) {
+    const intersects = getIntersects(event);
+    const targetMesh = intersects.length > 0 ? intersects[0].object : null;
+    endConnecting(targetMesh);
+    controls.enabled = true;
+  } else if (isDragging && draggedMesh) {
+    const data = thoughtData.get(draggedMesh.userData.id);
+    if (data) data.targetEmissive = 0.08;
+    
+    if (wasQuickTap) {
+      openEditor(draggedMesh);
+      if (data) data.velocity.set(0, 0, 0);
     } else {
-      const { vx, vy } = getVelocity();
-      if (Math.abs(vx) > 0.3 || Math.abs(vy) > 0.3) applyMomentum(vx, vy);
-      else save();
+      // Let momentum continue, save after it settles
+      setTimeout(save, 500);
     }
-    interaction = null;
-  });
+    
+    isDragging = false;
+    draggedMesh = null;
+    controls.enabled = true;
+  } else if (wasQuickTap && event.target === canvas) {
+    const pos = get3DPosition(event);
+    const thought = addThought(pos.x, pos.y, pos.z);
+    const mesh = thoughtMeshes.get(thought.id);
+    openEditor(mesh);
+  }
+}
+
+// ════════════════════════════════════════════════════════════════
+// Text Editor
+// ════════════════════════════════════════════════════════════════
+
+function openEditor(mesh) {
+  editingThought = state.thoughts.find(t => t.id === mesh.userData.id);
+  if (!editingThought) return;
   
-  canvas.addEventListener('pointercancel', e => {
-    if (interaction && interaction.pointerId === e.pointerId) {
-      canvas.releasePointerCapture(e.pointerId);
-      interaction = null;
+  const pos = mesh.position.clone().project(camera);
+  const x = (pos.x * 0.5 + 0.5) * window.innerWidth;
+  const y = (-pos.y * 0.5 + 0.5) * window.innerHeight;
+  
+  editor.style.left = x + 'px';
+  editor.style.top = y + 'px';
+  editor.style.display = 'block';
+  editor.value = editingThought.text;
+  editor.focus();
+  autoResizeEditor();
+  
+  const data = thoughtData.get(mesh.userData.id);
+  if (data) data.targetEmissive = 0.4;
+}
+
+function closeEditor(shouldSave = true) {
+  if (editingThought && shouldSave) {
+    const newText = editor.value.trim();
+    
+    if (newText === '') {
+      removeThought(editingThought.id);
+    } else {
+      updateThought(editingThought.id, { text: newText });
     }
-  });
+  }
   
-  const applyMomentum = (vx, vy) => {
-    let velX = vx * 15, velY = vy * 15;
-    const animate = () => {
-      if (Math.abs(velX) < 0.1 && Math.abs(velY) < 0.1) { save(); return; }
-      view.x -= velX / view.scale;
-      view.y -= velY / view.scale;
-      velX *= MOMENTUM_FRICTION;
-      velY *= MOMENTUM_FRICTION;
-      applyView();
-      animationFrame = requestAnimationFrame(animate);
-    };
-    cancelAnimationFrame(animationFrame);
-    animationFrame = requestAnimationFrame(animate);
-  };
+  if (editingThought) {
+    const data = thoughtData.get(editingThought.id);
+    if (data) data.targetEmissive = 0.08;
+  }
   
-  canvas.addEventListener('wheel', e => {
+  editor.style.display = 'none';
+  editingThought = null;
+}
+
+function autoResizeEditor() {
+  editor.style.height = 'auto';
+  editor.style.height = Math.min(editor.scrollHeight, 200) + 'px';
+}
+
+editor.addEventListener('input', autoResizeEditor);
+editor.addEventListener('blur', () => closeEditor(true));
+editor.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeEditor(false);
+  else if (e.key === 'Enter' && !e.shiftKey) {
     e.preventDefault();
-    cancelAnimationFrame(animationFrame);
-    const delta = e.deltaY > 0 ? 0.92 : 1.08;
-    const newScale = clamp(view.scale * delta, MIN_SCALE, MAX_SCALE);
-    if (newScale === view.scale) return;
-    const ptr = toWorld(e.clientX, e.clientY);
-    const ratio = newScale / view.scale;
-    view.x = ptr.x - (ptr.x - view.x) / ratio;
-    view.y = ptr.y - (ptr.y - view.y) / ratio;
-    view.scale = newScale;
-    applyView();
+    closeEditor(true);
+  }
+});
+
+// ════════════════════════════════════════════════════════════════
+// Daily Prompt
+// ════════════════════════════════════════════════════════════════
+
+function showPrompt() {
+  const today = new Date().toDateString();
+  
+  // Show prompt if it's a new day or no thoughts yet
+  if (state.lastPromptDate !== today || state.thoughts.length === 0) {
+    const prompt = PROMPTS[Math.floor(Math.random() * PROMPTS.length)];
+    promptText.textContent = prompt;
+    promptEl.classList.add('show');
+    state.lastPromptDate = today;
     save();
-  }, { passive: false });
-  
-  canvas.addEventListener('touchstart', e => {
-    if (e.touches.length === 2) {
-      e.preventDefault();
-      cancelAnimationFrame(animationFrame);
-      const t0 = e.touches[0], t1 = e.touches[1];
-      pinch = {
-        startDist: Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY),
-        startScale: view.scale,
-        centerX: (t0.clientX + t1.clientX) / 2,
-        centerY: (t0.clientY + t1.clientY) / 2
-      };
-      if (interaction) {
-        clearTimeout(interaction.longPressTimer);
-        if (interaction.element) {
-          interaction.element.classList.remove('dragging', 'source', 'holding');
-        }
-        pendingLine.style.visibility = 'hidden';
-        world.querySelectorAll('.t.connecting').forEach(el => el.classList.remove('connecting'));
-        interaction = null;
-      }
-    }
-  }, { passive: false });
-  
-  canvas.addEventListener('touchmove', e => {
-    if (pinch && e.touches.length === 2) {
-      e.preventDefault();
-      const t0 = e.touches[0], t1 = e.touches[1];
-      const newDist = Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY);
-      const newScale = clamp(pinch.startScale * (newDist / pinch.startDist), MIN_SCALE, MAX_SCALE);
-      if (newScale !== view.scale) {
-        const cw = toWorld(pinch.centerX, pinch.centerY);
-        const ratio = newScale / view.scale;
-        view.x = cw.x - (cw.x - view.x) / ratio;
-        view.y = cw.y - (cw.y - view.y) / ratio;
-        view.scale = newScale;
-        applyView();
-      }
-    }
-  }, { passive: false });
-  
-  canvas.addEventListener('touchend', () => { if (pinch) { pinch = null; save(); } });
-  
-  // ═══════════════════════════════════════════════════════════════
-  // Thought Events
-  // ═══════════════════════════════════════════════════════════════
-  
-  const setupThoughtEvents = el => {
-    el.addEventListener('pointerdown', onThoughtDown);
-    el.addEventListener('input', onThoughtInput);
-    el.addEventListener('blur', onThoughtBlur);
-    el.addEventListener('keydown', onThoughtKey);
-  };
-  
-  const onThoughtDown = e => {
-    if (interaction) return;
-    const el = e.currentTarget;
-    const t = state.thoughts.find(t => t.id === el.dataset.id);
-    if (!t) return;
-    
-    closeMenu();
-    
-    const now = Date.now();
-    if (now - lastTapTime < DOUBLE_TAP_MS && lastTapTarget === el.dataset.id) {
-      e.preventDefault();
-      e.stopPropagation();
-      focusThought(el.dataset.id);
-      lastTapTime = 0;
-      lastTapTarget = null;
-      return;
-    }
-    lastTapTime = now;
-    lastTapTarget = el.dataset.id;
-    
-    e.stopPropagation();
-    el.setPointerCapture(e.pointerId);
-    clearVelocity();
-    
-    interaction = {
-      type: 'thought',
-      pointerId: e.pointerId,
-      startScreen: { x: e.clientX, y: e.clientY },
-      startThoughtPos: { x: t.x, y: t.y },
-      element: el,
-      thoughtId: el.dataset.id,
-      moved: false,
-      longPressTimer: null,
-      holdingTimer: null,
-      isConnecting: false
-    };
-    
-    // Show holding feedback after 150ms
-    interaction.holdingTimer = setTimeout(() => {
-      if (interaction && !interaction.moved) {
-        interaction.element.classList.add('holding');
-      }
-    }, 150);
-    
-    interaction.longPressTimer = setTimeout(() => {
-      if (interaction && !interaction.moved) startConnecting(el);
-    }, LONG_PRESS_MS);
-    
-    el.addEventListener('pointermove', onThoughtMove);
-    el.addEventListener('pointerup', onThoughtUp);
-    el.addEventListener('pointercancel', onThoughtCancel);
-  };
-  
-  const onThoughtMove = e => {
-    if (!interaction || interaction.type !== 'thought' || interaction.pointerId !== e.pointerId) return;
-    const dx = e.clientX - interaction.startScreen.x;
-    const dy = e.clientY - interaction.startScreen.y;
-    const distance = Math.hypot(dx, dy);
-    trackVelocity(e.clientX, e.clientY);
-    
-    if (distance > DRAG_THRESHOLD && !interaction.moved && !interaction.isConnecting) {
-      interaction.moved = true;
-      clearTimeout(interaction.longPressTimer);
-      clearTimeout(interaction.holdingTimer);
-      interaction.element.classList.remove('holding');
-      interaction.element.classList.add('dragging');
-    }
-    
-    if (interaction.isConnecting) {
-      const pos = toWorld(e.clientX, e.clientY);
-      const el = interaction.element;
-      const cx = parseFloat(el.style.left) + el.offsetWidth / 2;
-      const cy = parseFloat(el.style.top) + el.offsetHeight / 2;
-      updatePendingLine(cx, cy, pos.x, pos.y);
-      const target = document.elementFromPoint(e.clientX, e.clientY);
-      world.querySelectorAll('.t.connecting').forEach(el => el.classList.remove('connecting'));
-      if (target && target.classList.contains('t') && target !== interaction.element) target.classList.add('connecting');
-    } else if (interaction.moved) {
-      const newX = interaction.startThoughtPos.x + dx / view.scale;
-      const newY = interaction.startThoughtPos.y + dy / view.scale;
-      interaction.element.style.left = newX + 'px';
-      interaction.element.style.top = newY + 'px';
-      updateLines(interaction.thoughtId);
-    }
-  };
-  
-  const onThoughtUp = e => {
-    if (!interaction || interaction.type !== 'thought' || interaction.pointerId !== e.pointerId) return;
-    clearTimeout(interaction.longPressTimer);
-    clearTimeout(interaction.holdingTimer);
-    const el = interaction.element;
-    el.classList.remove('holding');
-    el.releasePointerCapture(e.pointerId);
-    el.removeEventListener('pointermove', onThoughtMove);
-    el.removeEventListener('pointerup', onThoughtUp);
-    el.removeEventListener('pointercancel', onThoughtCancel);
-    
-    if (interaction.isConnecting) {
-      const target = document.elementFromPoint(e.clientX, e.clientY);
-      if (target && target.classList.contains('t') && target !== el) addLink(interaction.thoughtId, target.dataset.id);
-      endConnecting();
-    } else if (interaction.moved) {
-      el.classList.remove('dragging');
-      const { vx, vy } = getVelocity();
-      if (Math.hypot(vx, vy) > FLICK_VELOCITY) removeThought(interaction.thoughtId, true);
-      else updateThought(interaction.thoughtId, { x: parseFloat(el.style.left), y: parseFloat(el.style.top) });
-    }
-    interaction = null;
-  };
-  
-  const onThoughtCancel = e => {
-    if (!interaction || interaction.type !== 'thought') return;
-    clearTimeout(interaction.longPressTimer);
-    clearTimeout(interaction.holdingTimer);
-    const el = interaction.element;
-    el.releasePointerCapture(e.pointerId);
-    el.removeEventListener('pointermove', onThoughtMove);
-    el.removeEventListener('pointerup', onThoughtUp);
-    el.removeEventListener('pointercancel', onThoughtCancel);
-    el.classList.remove('dragging', 'holding');
-    endConnecting();
-    interaction = null;
-  };
-  
-  const startConnecting = el => {
-    if (!interaction) return;
-    interaction.isConnecting = true;
-    el.classList.remove('holding');
-    el.classList.add('source');
-    if (navigator.vibrate) navigator.vibrate(10);
-    const cx = parseFloat(el.style.left) + el.offsetWidth / 2;
-    const cy = parseFloat(el.style.top) + el.offsetHeight / 2;
-    updatePendingLine(cx, cy, cx, cy);
-    pendingLine.style.visibility = 'visible';
-  };
-  
-  const endConnecting = () => {
-    pendingLine.style.visibility = 'hidden';
-    world.querySelectorAll('.t.source, .t.connecting').forEach(el => el.classList.remove('source', 'connecting'));
-  };
-  
-  const onThoughtInput = e => {
-    const el = e.currentTarget;
-    updateThought(el.dataset.id, { text: el.textContent });
-    requestAnimationFrame(() => updateLines(el.dataset.id));
-  };
-  
-  const onThoughtBlur = e => {
-    const el = e.currentTarget;
-    if (!el.textContent.trim()) removeThought(el.dataset.id);
-  };
-  
-  const onThoughtKey = e => { if (e.key === 'Escape') e.currentTarget.blur(); };
-  
-  // ═══════════════════════════════════════════════════════════════
-  // Controls & Menu
-  // ═══════════════════════════════════════════════════════════════
-  
-  $('#btn-home').addEventListener('click', () => { closeMenu(); fitAll(); });
-  $('#btn-theme').addEventListener('click', () => { closeMenu(); toggleTheme(); });
-  $('#btn-menu').addEventListener('click', toggleMenu);
-  
-  function toggleMenu() {
-    menuOpen = !menuOpen;
-    devMenu.classList.toggle('open', menuOpen);
-    if (menuOpen) updateStats();
   }
-  
-  function closeMenu() {
+}
+
+function dismissPrompt() {
+  promptEl.classList.remove('show');
+}
+
+function showNewPrompt() {
+  const prompt = PROMPTS[Math.floor(Math.random() * PROMPTS.length)];
+  promptText.textContent = prompt;
+  promptEl.classList.add('show');
+}
+
+// ════════════════════════════════════════════════════════════════
+// Stats
+// ════════════════════════════════════════════════════════════════
+
+function updateStats() {
+  const tc = state.thoughts.length;
+  const cc = state.connections.length;
+  statThoughts.textContent = `${tc} thought${tc !== 1 ? 's' : ''}`;
+  statConnections.textContent = `${cc} connection${cc !== 1 ? 's' : ''}`;
+}
+
+// ════════════════════════════════════════════════════════════════
+// Menu
+// ════════════════════════════════════════════════════════════════
+
+let menuOpen = false;
+
+menuBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  menuOpen = !menuOpen;
+  menu.classList.toggle('open', menuOpen);
+});
+
+document.addEventListener('click', () => {
+  if (menuOpen) {
     menuOpen = false;
-    devMenu.classList.remove('open');
+    menu.classList.remove('open');
   }
+});
+
+document.getElementById('menu-export').addEventListener('click', () => {
+  const data = JSON.stringify(state, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `atem-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Exported');
+});
+
+document.getElementById('menu-import').addEventListener('click', () => {
+  importInput.click();
+});
+
+importInput.addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
   
-  function updateStats() {
-    statsEl.textContent = `${state.thoughts.length} thoughts · ${state.links.length} links`;
-  }
-  
-  // Menu items
-  $('#menu-export').addEventListener('click', () => {
-    closeMenu();
-    exportImage();
-  });
-  
-  $('#menu-export-json').addEventListener('click', () => {
-    closeMenu();
-    const data = JSON.stringify(state, null, 2);
-    const blob = new Blob([data], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `atem-${new Date().toISOString().slice(0,10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    showToast('Exported JSON');
-  });
-  
-  $('#menu-import').addEventListener('click', () => {
-    closeMenu();
-    $('#import-input').click();
-  });
-  
-  $('#import-input').addEventListener('change', e => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      try {
-        const imported = JSON.parse(ev.target.result);
-        if (imported.thoughts) {
-          state.thoughts = imported.thoughts;
-          state.links = imported.links || [];
-          save();
-          render();
-          fitAll();
-          showToast('Imported successfully');
-        }
-      } catch (err) {
-        showToast('Invalid file');
-      }
-    };
-    reader.readAsText(file);
-    e.target.value = '';
-  });
-  
-  $('#menu-center').addEventListener('click', () => {
-    closeMenu();
-    centerView();
-  });
-  
-  $('#menu-fit').addEventListener('click', () => {
-    closeMenu();
-    fitAll();
-  });
-  
-  $('#menu-clear').addEventListener('click', () => {
-    closeMenu();
-    if (confirm('Delete all thoughts? This cannot be undone.')) {
-      state.thoughts = [];
-      state.links = [];
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      const imported = JSON.parse(ev.target.result);
+      
+      // Clear existing
+      thoughtMeshes.forEach(mesh => {
+        scene.remove(mesh);
+        mesh.geometry.dispose();
+        mesh.material.dispose();
+      });
+      thoughtMeshes.clear();
+      thoughtData.clear();
+      connectionLines.forEach(line => {
+        scene.remove(line);
+        line.geometry.dispose();
+        line.material.dispose();
+      });
+      connectionLines.clear();
+      
+      // Load imported
+      state.thoughts = imported.thoughts || [];
+      state.connections = imported.connections || [];
+      state.thoughts.forEach(t => createThoughtMesh(t));
+      renderConnections();
+      updateStats();
       save();
-      render();
-      centerView();
-      showToast('All cleared');
-    }
-  });
-  
-  // Close menu on outside click
-  document.addEventListener('click', e => {
-    if (menuOpen && !devMenu.contains(e.target) && e.target.id !== 'btn-menu') {
-      closeMenu();
-    }
-  });
-  
-  // ═══════════════════════════════════════════════════════════════
-  // Export as Image
-  // ═══════════════════════════════════════════════════════════════
-  
-  async function exportImage() {
-    if (state.thoughts.length === 0) {
-      showToast('Nothing to export');
-      return;
-    }
-    
-    showToast('Preparing export...');
-    
-    // Calculate bounds
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-    state.thoughts.forEach(t => {
-      const el = world.querySelector(`[data-id="${t.id}"]`);
-      const w = el ? el.offsetWidth : 100;
-      const h = el ? el.offsetHeight : 50;
-      minX = Math.min(minX, t.x);
-      minY = Math.min(minY, t.y);
-      maxX = Math.max(maxX, t.x + w);
-      maxY = Math.max(maxY, t.y + h);
-    });
-    
-    const padding = 40;
-    const width = maxX - minX + padding * 2;
-    const height = maxY - minY + padding * 2;
-    
-    // Create canvas
-    const c = document.createElement('canvas');
-    const dpr = 2;
-    c.width = width * dpr;
-    c.height = height * dpr;
-    const ctx = c.getContext('2d');
-    ctx.scale(dpr, dpr);
-    
-    // Background
-    ctx.fillStyle = isDarkMode() ? '#0a0a0a' : '#fafafa';
-    ctx.fillRect(0, 0, width, height);
-    
-    // Lines
-    ctx.strokeStyle = isDarkMode() ? '#e5e5e5' : '#1a1a1a';
-    ctx.lineWidth = 1.5;
-    ctx.globalAlpha = 0.3;
-    state.links.forEach(link => {
-      const a = state.thoughts.find(t => t.id === link.a);
-      const b = state.thoughts.find(t => t.id === link.b);
-      if (!a || !b) return;
-      const elA = world.querySelector(`[data-id="${a.id}"]`);
-      const elB = world.querySelector(`[data-id="${b.id}"]`);
-      const ax = a.x - minX + padding + (elA ? elA.offsetWidth/2 : 50);
-      const ay = a.y - minY + padding + (elA ? elA.offsetHeight/2 : 25);
-      const bx = b.x - minX + padding + (elB ? elB.offsetWidth/2 : 50);
-      const by = b.y - minY + padding + (elB ? elB.offsetHeight/2 : 25);
       
-      const midX = (ax + bx) / 2, midY = (ay + by) / 2;
-      const dx = bx - ax, dy = by - ay;
-      const dist = Math.hypot(dx, dy);
-      if (dist === 0) return;
-      const curve = Math.min(dist * 0.15, 50);
-      const nx = -dy / dist * curve, ny = dx / dist * curve;
-      
-      ctx.beginPath();
-      ctx.moveTo(ax, ay);
-      ctx.quadraticCurveTo(midX + nx, midY + ny, bx, by);
-      ctx.stroke();
+      showToast('Imported');
+    } catch (err) {
+      showToast('Invalid file');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+
+document.getElementById('menu-reset-view').addEventListener('click', () => {
+  camera.position.set(0, 0, 30);
+  controls.target.set(0, 0, 0);
+  save();
+  showToast('View reset');
+});
+
+document.getElementById('menu-new-prompt').addEventListener('click', () => {
+  showNewPrompt();
+});
+
+document.getElementById('menu-clear').addEventListener('click', () => {
+  if (confirm('Clear all thoughts? This cannot be undone.')) {
+    thoughtMeshes.forEach(mesh => {
+      scene.remove(mesh);
+      mesh.geometry.dispose();
+      mesh.material.dispose();
     });
-    ctx.globalAlpha = 1;
-    
-    // Text
-    ctx.fillStyle = isDarkMode() ? '#e5e5e5' : '#1a1a1a';
-    ctx.font = '18px -apple-system, BlinkMacSystemFont, sans-serif';
-    state.thoughts.forEach(t => {
-      const x = t.x - minX + padding + 18;
-      const y = t.y - minY + padding + 32;
-      ctx.fillText(t.text, x, y);
+    thoughtMeshes.clear();
+    thoughtData.clear();
+    connectionLines.forEach(line => {
+      scene.remove(line);
+      line.geometry.dispose();
+      line.material.dispose();
     });
+    connectionLines.clear();
     
-    // Download
-    const url = c.toDataURL('image/png');
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `atem-${new Date().toISOString().slice(0,10)}.png`;
-    a.click();
-    showToast('Exported image');
+    state.thoughts = [];
+    state.connections = [];
+    updateStats();
+    save();
+    showToast('Cleared');
   }
+});
+
+// ════════════════════════════════════════════════════════════════
+// Toast
+// ════════════════════════════════════════════════════════════════
+
+function showToast(msg) {
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2000);
+}
+
+// ════════════════════════════════════════════════════════════════
+// Event Listeners
+// ════════════════════════════════════════════════════════════════
+
+canvas.addEventListener('pointerdown', onPointerDown);
+canvas.addEventListener('pointermove', onPointerMove);
+canvas.addEventListener('pointerup', onPointerUp);
+canvas.addEventListener('pointercancel', onPointerUp);
+canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    if (editingThought) closeEditor(false);
+    else if (promptEl.classList.contains('show')) dismissPrompt();
+  }
+});
+
+// ════════════════════════════════════════════════════════════════
+// Utils
+// ════════════════════════════════════════════════════════════════
+
+function uid() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+}
+
+// ════════════════════════════════════════════════════════════════
+// Render Loop
+// ════════════════════════════════════════════════════════════════
+
+let lastTime = performance.now();
+
+function animate() {
+  requestAnimationFrame(animate);
   
-  // ═══════════════════════════════════════════════════════════════
-  // iOS quirks
-  // ═══════════════════════════════════════════════════════════════
+  const now = performance.now();
+  const delta = now - lastTime;
+  lastTime = now;
   
-  document.addEventListener('gesturestart', e => e.preventDefault());
-  document.addEventListener('gesturechange', e => e.preventDefault());
-  document.addEventListener('gestureend', e => e.preventDefault());
-  
-  let lastTouchEnd = 0;
-  document.addEventListener('touchend', e => {
-    const now = Date.now();
-    if (now - lastTouchEnd < 300) e.preventDefault();
-    lastTouchEnd = now;
-  }, { passive: false });
-  
-  // ═══════════════════════════════════════════════════════════════
-  // Init
-  // ═══════════════════════════════════════════════════════════════
-  
-  load();
-  applyTheme();
-  if (state.thoughts.length === 0) { view.x = WORLD_CENTER; view.y = WORLD_CENTER; view.scale = 1; }
-  render();
-  syncDot.className = 'saved fade';
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
-})();
+  controls.update();
+  animateThoughts(delta);
+  renderer.render(scene, camera);
+}
+
+// ════════════════════════════════════════════════════════════════
+// Init
+// ════════════════════════════════════════════════════════════════
+
+load();
+pendingLine = createPendingLine();
+animate();
+
+// Show prompt after a moment
+setTimeout(() => {
+  if (state.thoughts.length === 0) {
+    showPrompt();
+  }
+}, 500);
+
+// Register service worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+
+console.log('atem 3d - v0.3 alive');
 </script>
 </body>
 </html>
