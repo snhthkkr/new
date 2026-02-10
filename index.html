@@ -16,15 +16,14 @@
 html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;color:#fff;position:fixed;touch-action:none}
 #c{width:100%;height:100%;display:block}
 
-/* ─── Editor overlay (tap-to-edit) ─── */
+/* ─── Editor overlay ─── */
 #editor{
   position:fixed;display:none;z-index:100;
   left:50%;top:50%;transform:translate(-50%,-50%);
   width:min(320px,85vw);
   background:rgba(10,10,15,0.95);
   border:1px solid rgba(255,255,255,0.12);
-  border-radius:16px;
-  padding:16px;
+  border-radius:16px;padding:16px;
   backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
 }
 #editor.open{display:block}
@@ -37,31 +36,41 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:-ap
 }
 #editor textarea::placeholder{color:rgba(255,255,255,0.25)}
 
+/* color swatches (feat 2) */
+#ed-color-row{
+  display:flex;gap:8px;margin-top:10px;padding-top:10px;
+  border-top:1px solid rgba(255,255,255,0.06);
+  flex-wrap:wrap;align-items:center;
+}
+.color-swatch{
+  width:24px;height:24px;border-radius:50%;cursor:pointer;
+  border:2px solid transparent;transition:border-color 0.15s,transform 0.15s;
+  flex-shrink:0;
+}
+.color-swatch:active{transform:scale(0.9)}
+.color-swatch.active{border-color:rgba(255,255,255,0.7);transform:scale(1.15)}
+
 /* folder picker inside editor */
 #ed-folder-row{
   display:flex;align-items:center;gap:6px;
-  margin-top:10px;padding-top:10px;
+  margin-top:8px;padding-top:8px;
   border-top:1px solid rgba(255,255,255,0.06);
   flex-wrap:wrap;
 }
-#ed-folder-row .folder-chip{
+.folder-chip{
   padding:4px 10px;border-radius:20px;font-size:12px;
   background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.5);
-  border:1px solid rgba(255,255,255,0.08);cursor:pointer;
-  white-space:nowrap;
+  border:1px solid rgba(255,255,255,0.08);cursor:pointer;white-space:nowrap;
 }
-#ed-folder-row .folder-chip.active{
+.folder-chip.active{
   background:rgba(110,168,254,0.2);color:rgba(110,168,254,0.9);
   border-color:rgba(110,168,254,0.3);
 }
-#ed-folder-row .folder-chip.add-new{
-  color:rgba(255,255,255,0.3);border-style:dashed;
-}
+.folder-chip.add-new{color:rgba(255,255,255,0.3);border-style:dashed}
 #ed-folder-input{
   background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,0.2);
   color:#fff;font-size:12px;padding:4px 2px;outline:none;width:80px;
-  font-family:inherit;display:none;
-  -webkit-user-select:text;user-select:text;
+  font-family:inherit;display:none;-webkit-user-select:text;user-select:text;
 }
 
 #editor-actions{
@@ -72,42 +81,34 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:-ap
 #editor-actions button{
   background:rgba(255,255,255,0.08);border:none;
   color:rgba(255,255,255,0.7);font-size:13px;
-  padding:6px 14px;border-radius:8px;cursor:pointer;
-  font-family:inherit;
+  padding:6px 14px;border-radius:8px;cursor:pointer;font-family:inherit;
 }
 #editor-actions button:active{background:rgba(255,255,255,0.15)}
 #editor-actions .save{color:#fff;background:rgba(255,255,255,0.15)}
 #del-btn{color:rgba(255,100,100,0.8)}
 
-/* ─── Zero button (feature 1) ─── */
+/* ─── Zero button ─── */
 #zero-btn{
   position:fixed;
-  bottom:max(24px,calc(env(safe-area-inset-bottom,0px) + 12px));
+  bottom:max(24px,calc(env(safe-area-inset-bottom,0px)+12px));
   left:50%;transform:translateX(-50%);
   width:44px;height:44px;border-radius:50%;
-  background:rgba(255,255,255,0.04);
-  border:1px solid rgba(255,255,255,0.08);
+  background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);
   display:flex;align-items:center;justify-content:center;
   cursor:pointer;z-index:80;
   backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
-  transition:background 0.2s;
 }
 #zero-btn:active{background:rgba(255,255,255,0.1)}
 #zero-btn svg{width:18px;height:18px;opacity:0.3}
-/* subtle pulse animation */
-@keyframes zero-pulse{
-  0%,100%{box-shadow:0 0 0 0 rgba(110,168,254,0)}
-  50%{box-shadow:0 0 0 6px rgba(110,168,254,0.06)}
-}
+@keyframes zero-pulse{0%,100%{box-shadow:0 0 0 0 rgba(110,168,254,0)}50%{box-shadow:0 0 0 6px rgba(110,168,254,0.06)}}
 #zero-btn{animation:zero-pulse 4s ease-in-out infinite}
 
-/* ─── Zero capture overlay (feature 1) ─── */
+/* ─── Zero capture overlay ─── */
 #zero-overlay{
   position:fixed;inset:0;z-index:150;display:none;
   background:rgba(0,0,0,0.85);
   backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
-  flex-direction:column;align-items:center;justify-content:center;
-  padding:24px;
+  flex-direction:column;align-items:center;justify-content:center;padding:24px;
 }
 #zero-overlay.open{display:flex}
 #zero-overlay textarea{
@@ -118,29 +119,22 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:-ap
   -webkit-user-select:text;user-select:text;
 }
 #zero-overlay textarea::placeholder{color:rgba(255,255,255,0.15)}
-#zero-actions{
-  display:flex;gap:12px;margin-top:24px;
-}
+#zero-actions{display:flex;gap:12px;margin-top:24px}
 #zero-actions button{
   background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);
-  color:rgba(255,255,255,0.7);font-size:14px;
-  padding:8px 20px;border-radius:10px;cursor:pointer;
-  font-family:inherit;
+  color:rgba(255,255,255,0.7);font-size:14px;padding:8px 20px;
+  border-radius:10px;cursor:pointer;font-family:inherit;
 }
 #zero-actions button:active{background:rgba(255,255,255,0.15)}
 #zero-actions .save{color:#fff;background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.15)}
 
-/* ─── Folder filter bar (feature 2) ─── */
+/* ─── Folder bar ─── */
 #folder-bar{
-  position:fixed;
-  top:max(14px,env(safe-area-inset-top,0px));
+  position:fixed;top:max(14px,env(safe-area-inset-top,0px));
   left:50%;transform:translateX(-50%);
   display:flex;gap:6px;z-index:85;
-  max-width:calc(100vw - 100px);
-  overflow-x:auto;
-  -webkit-overflow-scrolling:touch;
-  scrollbar-width:none;
-  padding:2px 4px;
+  max-width:calc(100vw - 100px);overflow-x:auto;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none;padding:2px 4px;
 }
 #folder-bar::-webkit-scrollbar{display:none}
 #folder-bar .ftab{
@@ -148,8 +142,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:-ap
   background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.3);
   border:1px solid rgba(255,255,255,0.06);cursor:pointer;
   white-space:nowrap;flex-shrink:0;
-  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
-  transition:all 0.2s;
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:all 0.2s;
 }
 #folder-bar .ftab:active{background:rgba(255,255,255,0.08)}
 #folder-bar .ftab.active{
@@ -157,13 +150,73 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:-ap
   border-color:rgba(110,168,254,0.25);
 }
 
+/* ─── Connection delete pill (feat 1) ─── */
+#conn-delete-pill{
+  position:fixed;display:none;z-index:110;
+  background:rgba(10,10,15,0.95);border:1px solid rgba(255,100,100,0.2);
+  border-radius:10px;padding:6px 14px;cursor:pointer;
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  color:rgba(255,100,100,0.8);font-size:13px;font-family:inherit;
+  transform:translate(-50%,-100%) translateY(-8px);
+}
+#conn-delete-pill.open{display:block}
+#conn-delete-pill:active{background:rgba(255,50,50,0.15)}
+
+/* ─── Lasso rectangle (feat 3) ─── */
+#lasso-rect{
+  position:fixed;display:none;z-index:70;
+  border:1px solid rgba(255,255,255,0.3);
+  background:rgba(255,255,255,0.03);
+  pointer-events:none;border-radius:2px;
+}
+
+/* ─── Lasso action bar (feat 3) ─── */
+#lasso-bar{
+  position:fixed;display:none;z-index:110;
+  bottom:max(80px,calc(env(safe-area-inset-bottom,0px)+70px));
+  left:50%;transform:translateX(-50%);
+  background:rgba(10,10,15,0.95);border:1px solid rgba(255,255,255,0.1);
+  border-radius:12px;padding:6px;
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  display:none;gap:4px;
+}
+#lasso-bar.open{display:flex}
+#lasso-bar button{
+  background:rgba(255,255,255,0.06);border:none;
+  color:rgba(255,255,255,0.7);font-size:13px;
+  padding:7px 14px;border-radius:8px;cursor:pointer;font-family:inherit;
+  white-space:nowrap;
+}
+#lasso-bar button:active{background:rgba(255,255,255,0.12)}
+
+/* ─── Lasso folder picker (feat 3) ─── */
+#lasso-folder-picker{
+  position:fixed;display:none;z-index:115;
+  bottom:max(130px,calc(env(safe-area-inset-bottom,0px)+120px));
+  left:50%;transform:translateX(-50%);
+  background:rgba(10,10,15,0.95);border:1px solid rgba(255,255,255,0.1);
+  border-radius:12px;padding:8px;
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  gap:6px;flex-wrap:wrap;max-width:80vw;justify-content:center;
+}
+#lasso-folder-picker.open{display:flex}
+
 /* ─── Stats ─── */
 #stats{
-  position:fixed;bottom:max(72px,calc(env(safe-area-inset-bottom,0px) + 60px));
+  position:fixed;bottom:max(72px,calc(env(safe-area-inset-bottom,0px)+60px));
   left:50%;transform:translateX(-50%);
   font-size:11px;color:rgba(255,255,255,0.15);
   letter-spacing:0.05em;pointer-events:none;white-space:nowrap;
 }
+
+/* ─── FPS counter (feat 5) ─── */
+#fps{
+  position:fixed;top:max(14px,env(safe-area-inset-top,0px));left:16px;
+  font-size:10px;color:rgba(255,255,255,0.2);
+  font-variant-numeric:tabular-nums;pointer-events:none;
+  display:none;z-index:85;
+}
+#fps.on{display:block}
 
 /* ─── Menu pill ─── */
 #menu-pill{
@@ -180,63 +233,46 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:-ap
 /* ─── Menu dropdown ─── */
 #menu{
   position:fixed;top:max(56px,calc(env(safe-area-inset-top,0px)+48px));right:16px;
-  background:rgba(10,10,15,0.95);
-  border:1px solid rgba(255,255,255,0.1);
+  background:rgba(10,10,15,0.95);border:1px solid rgba(255,255,255,0.1);
   border-radius:14px;padding:6px;
   backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
   z-index:91;display:none;min-width:180px;
 }
 #menu.open{display:block}
 #menu button{
-  display:flex;align-items:center;justify-content:space-between;
-  width:100%;text-align:left;
+  display:flex;align-items:center;justify-content:space-between;width:100%;text-align:left;
   background:none;border:none;color:rgba(255,255,255,0.7);
-  font-size:14px;padding:10px 12px;border-radius:8px;
-  cursor:pointer;font-family:inherit;
+  font-size:14px;padding:10px 12px;border-radius:8px;cursor:pointer;font-family:inherit;
 }
 #menu button:active{background:rgba(255,255,255,0.08)}
-/* toggle indicator */
-.toggle-dot{
-  width:8px;height:8px;border-radius:50%;
-  background:rgba(255,255,255,0.15);flex-shrink:0;
-}
+.toggle-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.15);flex-shrink:0}
 .toggle-dot.on{background:rgba(110,168,254,0.8)}
+.menu-sep{margin:6px 12px;font-size:10px;color:rgba(255,255,255,0.15);letter-spacing:0.1em;text-transform:uppercase}
 
 /* ─── Hint ─── */
-#hint{
-  position:fixed;top:50%;left:50%;
-  transform:translate(-50%,-50%);
-  color:rgba(255,255,255,0.08);
-  font-size:14px;pointer-events:none;
-  transition:opacity 0.8s ease;
-}
+#hint{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);color:rgba(255,255,255,0.08);font-size:14px;pointer-events:none;transition:opacity 0.8s ease}
 
 /* ─── Toast ─── */
 #toast{
   position:fixed;top:max(16px,env(safe-area-inset-top,0px));
   left:50%;transform:translateX(-50%) translateY(-40px);
-  background:rgba(255,255,255,0.1);
-  border:1px solid rgba(255,255,255,0.1);
-  border-radius:10px;padding:8px 16px;
-  color:rgba(255,255,255,0.7);font-size:13px;
+  background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.1);
+  border-radius:10px;padding:8px 16px;color:rgba(255,255,255,0.7);font-size:13px;
   backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
-  opacity:0;transition:all 0.3s ease;z-index:200;
-  pointer-events:none;
+  opacity:0;transition:all 0.3s ease;z-index:200;pointer-events:none;
 }
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
 </head>
 <body>
 <canvas id="c"></canvas>
-
 <div id="hint">tap anywhere</div>
 
-<!-- Editor (tap-to-edit existing thought) -->
+<!-- Editor -->
 <div id="editor">
   <textarea id="ed-text" placeholder="think..." autocomplete="off" autocorrect="on" spellcheck="true"></textarea>
-  <div id="ed-folder-row">
-    <!-- folder chips rendered dynamically -->
-  </div>
+  <div id="ed-color-row"></div>
+  <div id="ed-folder-row"></div>
   <div id="editor-actions">
     <button id="del-btn">delete</button>
     <button id="cancel-btn">cancel</button>
@@ -244,12 +280,12 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:-ap
   </div>
 </div>
 
-<!-- Zero button (feature 1) -->
+<!-- Zero button -->
 <div id="zero-btn" aria-label="quick capture">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
 </div>
 
-<!-- Zero capture overlay (feature 1) -->
+<!-- Zero capture overlay -->
 <div id="zero-overlay">
   <textarea id="zero-text" placeholder="what's on your mind?" autocomplete="off" autocorrect="on" spellcheck="true"></textarea>
   <div id="zero-actions">
@@ -258,24 +294,47 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:-ap
   </div>
 </div>
 
-<!-- Folder bar (feature 2) -->
+<!-- Folder bar -->
 <div id="folder-bar"></div>
+
+<!-- Connection delete pill (feat 1) -->
+<div id="conn-delete-pill">remove</div>
+
+<!-- Lasso rectangle (feat 3) -->
+<div id="lasso-rect"></div>
+
+<!-- Lasso action bar (feat 3) -->
+<div id="lasso-bar">
+  <button id="lasso-assign-btn">assign folder</button>
+  <button id="lasso-clear-btn">clear</button>
+</div>
+
+<!-- Lasso folder picker (feat 3) -->
+<div id="lasso-folder-picker"></div>
 
 <!-- Stats -->
 <div id="stats"></div>
+
+<!-- FPS (feat 5) -->
+<div id="fps"></div>
 
 <!-- Menu pill -->
 <div id="menu-pill" aria-label="menu">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
 </div>
 
-<!-- Menu dropdown -->
+<!-- Menu -->
 <div id="menu">
-  <button id="btn-reset-view">reset view</button>
   <button id="btn-export">export thoughts</button>
   <button id="btn-import">import thoughts</button>
   <button id="btn-open-capture">open to capture <span class="toggle-dot" id="capture-toggle-dot"></span></button>
   <button id="btn-clear">clear all</button>
+  <div class="menu-sep">dev</div>
+  <button id="btn-reset-view">reset camera</button>
+  <button id="btn-dump-state">dump state</button>
+  <button id="btn-force-save">force save</button>
+  <button id="btn-show-orphans">show orphans</button>
+  <button id="btn-toggle-fps">fps counter <span class="toggle-dot" id="fps-dot"></span></button>
 </div>
 
 <div id="toast"></div>
@@ -293,42 +352,41 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 // ═══════════════════════════════════════════
 
 let state = {
-  thoughts: [],
-  connections: [],
-  folders: [],        // feature 2: array of folder name strings
-  activeFolder: null, // feature 2: null = show all
-  camera: null,
-  openToCapture: false // feature 3
+  thoughts: [], connections: [], folders: [],
+  activeFolder: null, camera: null, openToCapture: false
 };
 
-let editingId = null;
-let editingFolder = null; // tracks folder assignment during edit
-let connectSource = null;
-let holdTimer = null;
-let isDragging = false;
-let draggedMesh = null;
+let editingId = null, editingFolder = null, editingColor = null;
+let connectSource = null, holdTimer = null;
+let isDragging = false, draggedMesh = null;
 let dragOffset = new THREE.Vector3();
-let pointerStart = { x: 0, y: 0 };
-let pointerMoved = false;
-let holdTriggered = false;
-let pendingLineMesh = null;
-let menuOpen = false;
-let hintVisible = true;
+let pointerStart = { x:0, y:0 }, pointerMoved = false, holdTriggered = false;
+let pendingLineMesh = null, menuOpen = false, hintVisible = true;
+let showFps = false;
 
-const HOLD_MS = 350;
-const DRAG_THRESH = 8;
-const SPHERE_RADIUS = 0.35;
+// Lasso state (feat 3)
+let lassoActive = false, lassoStart = null, lassoEnd = null;
+let lassoHoldTimer = null, lassoHoldTriggered = false;
+let selectedIds = new Set();
+
+// Connection delete state (feat 1)
+let pendingDeleteConnId = null;
+
+const HOLD_MS = 350, DRAG_THRESH = 8, SPHERE_RADIUS = 0.35;
 const raycaster = new THREE.Raycaster();
+raycaster.params.Line = { threshold: 0.4 }; // feat 1: make lines hittable
 const pointer = new THREE.Vector2();
-const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+const plane = new THREE.Plane(new THREE.Vector3(0,0,1), 0);
 const intersectPt = new THREE.Vector3();
+const COLORS = ['#6ea8fe','#a78bfa','#f472b6','#34d399','#fbbf24','#fb923c','#f87171','#67e8f9'];
+let colorIdx = 0;
 
 // ═══════════════════════════════════════════
-// Scene setup
+// Scene
 // ═══════════════════════════════════════════
 
 const canvas = document.getElementById('c');
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:false });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setClearColor(0x000000);
@@ -336,84 +394,69 @@ renderer.setClearColor(0x000000);
 const scene = new THREE.Scene();
 scene.fog = new THREE.FogExp2(0x000000, 0.035);
 
-const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 200);
+const camera = new THREE.PerspectiveCamera(50, window.innerWidth/window.innerHeight, 0.1, 200);
 camera.position.set(0, 0, 18);
 
 const controls = new OrbitControls(camera, canvas);
-controls.enableDamping = true;
-controls.dampingFactor = 0.08;
-controls.enablePan = true;
-controls.panSpeed = 0.8;
-controls.rotateSpeed = 0.5;
-controls.zoomSpeed = 0.8;
-controls.minDistance = 4;
-controls.maxDistance = 60;
-controls.enableRotate = true;
+controls.enableDamping = true; controls.dampingFactor = 0.08;
+controls.enablePan = true; controls.panSpeed = 0.8;
+controls.rotateSpeed = 0.5; controls.zoomSpeed = 0.8;
+controls.minDistance = 4; controls.maxDistance = 60;
 
-// Lighting
 scene.add(new THREE.AmbientLight(0x404060, 0.6));
-const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-dirLight.position.set(5, 8, 10);
-scene.add(dirLight);
-const backLight = new THREE.DirectionalLight(0x4466aa, 0.3);
-backLight.position.set(-5, -3, -8);
-scene.add(backLight);
+const dl = new THREE.DirectionalLight(0xffffff, 0.8); dl.position.set(5,8,10); scene.add(dl);
+const bl = new THREE.DirectionalLight(0x4466aa, 0.3); bl.position.set(-5,-3,-8); scene.add(bl);
 
-// Star field
-const starGeo = new THREE.BufferGeometry();
-const sv = [];
-for (let i = 0; i < 400; i++) sv.push((Math.random()-0.5)*100,(Math.random()-0.5)*100,(Math.random()-0.5)*100);
-starGeo.setAttribute('position', new THREE.Float32BufferAttribute(sv, 3));
-scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({ color:0xffffff, size:0.08, transparent:true, opacity:0.3 })));
+// Stars
+const sg = new THREE.BufferGeometry(); const sv = [];
+for(let i=0;i<400;i++) sv.push((Math.random()-.5)*100,(Math.random()-.5)*100,(Math.random()-.5)*100);
+sg.setAttribute('position', new THREE.Float32BufferAttribute(sv,3));
+scene.add(new THREE.Points(sg, new THREE.PointsMaterial({color:0xffffff,size:0.08,transparent:true,opacity:0.3})));
 
-// Groups
-const thoughtGroup = new THREE.Group();
-scene.add(thoughtGroup);
-const lineGroup = new THREE.Group();
-scene.add(lineGroup);
+const thoughtGroup = new THREE.Group(); scene.add(thoughtGroup);
+const lineGroup = new THREE.Group(); scene.add(lineGroup);
 
 // ═══════════════════════════════════════════
-// Thought mesh creation
+// Thought mesh
 // ═══════════════════════════════════════════
 
 const sphereGeo = new THREE.SphereGeometry(SPHERE_RADIUS, 24, 18);
 
 function makeThoughtMaterial(color) {
   return new THREE.MeshStandardMaterial({
-    color: new THREE.Color(color || '#6ea8fe'),
-    emissive: new THREE.Color(color || '#6ea8fe'),
-    emissiveIntensity: 0.15,
-    roughness: 0.4, metalness: 0.1,
-    transparent: true, opacity: 0.9,
+    color: new THREE.Color(color||'#6ea8fe'),
+    emissive: new THREE.Color(color||'#6ea8fe'),
+    emissiveIntensity:0.15, roughness:0.4, metalness:0.1,
+    transparent:true, opacity:0.9,
   });
 }
 
+// feat 4: retina-quality labels
 function createLabel(text) {
   const c = document.createElement('canvas');
-  c.width = 512; c.height = 128;
+  c.width = 1024; c.height = 256;
   const ctx = c.getContext('2d');
+  ctx.scale(2, 2);
   ctx.clearRect(0, 0, 512, 128);
-  ctx.fillStyle = '#ffffff';
-  ctx.font = '500 28px -apple-system, BlinkMacSystemFont, sans-serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+  ctx.font = '300 24px -apple-system, BlinkMacSystemFont, sans-serif';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   let display = text || '';
-  if (display.length > 40) display = display.slice(0, 38) + '…';
+  if (display.length > 50) display = display.slice(0, 48) + '…';
   const words = display.split(' ');
   let lines = [], line = '';
   for (const w of words) {
-    const test = line ? line + ' ' + w : w;
+    const test = line ? line+' '+w : w;
     if (ctx.measureText(test).width > 460) { lines.push(line); line = w; }
     else line = test;
   }
   if (line) lines.push(line);
-  if (lines.length > 3) lines = lines.slice(0, 3);
-  const lineH = 32;
-  const startY = 64 - ((lines.length - 1) * lineH) / 2;
-  lines.forEach((l, i) => ctx.fillText(l, 256, startY + i * lineH));
-  const tex = new THREE.CanvasTexture(c);
-  tex.needsUpdate = true;
-  const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, opacity: 0.85, depthTest: false });
+  if (lines.length > 3) lines = lines.slice(0,3);
+  const lineH = 30;
+  const startY = 64 - ((lines.length-1)*lineH)/2;
+  lines.forEach((l,i) => ctx.fillText(l, 256, startY + i*lineH));
+  const tex = new THREE.CanvasTexture(c); tex.needsUpdate = true;
+  const mat = new THREE.SpriteMaterial({ map:tex, transparent:true, opacity:0.85, depthTest:false });
   const sprite = new THREE.Sprite(mat);
   sprite.scale.set(3, 0.75, 1);
   sprite.position.y = -SPHERE_RADIUS - 0.5;
@@ -424,8 +467,8 @@ function addThoughtMesh(t) {
   const mat = makeThoughtMaterial(t.color);
   const mesh = new THREE.Mesh(sphereGeo, mat);
   mesh.position.set(t.position[0], t.position[1], t.position[2]);
-  mesh.userData = { id: t.id, baseEmissive: 0.15, targetEmissive: 0.15, targetOpacity: 0.9, breath: Math.random() * Math.PI * 2 };
-  if (t.text) { const label = createLabel(t.text); label.name = 'label'; mesh.add(label); }
+  mesh.userData = { id:t.id, baseEmissive:0.15, targetEmissive:0.15, targetOpacity:0.9, breath:Math.random()*Math.PI*2 };
+  if (t.text) { const l = createLabel(t.text); l.name='label'; mesh.add(l); }
   thoughtGroup.add(mesh);
   return mesh;
 }
@@ -433,24 +476,24 @@ function addThoughtMesh(t) {
 function updateLabel(mesh, text) {
   const old = mesh.getObjectByName('label');
   if (old) mesh.remove(old);
-  if (text) { const label = createLabel(text); label.name = 'label'; mesh.add(label); }
+  if (text) { const l = createLabel(text); l.name='label'; mesh.add(l); }
 }
 
-function getMesh(id) {
-  return thoughtGroup.children.find(m => m.userData.id === id);
-}
+function getMesh(id) { return thoughtGroup.children.find(m => m.userData.id === id); }
 
 // ═══════════════════════════════════════════
-// Connection rendering
+// Connections
 // ═══════════════════════════════════════════
 
 function rebuildConnections() {
   while (lineGroup.children.length) lineGroup.remove(lineGroup.children[0]);
+  // Group by pair for density
   const pairs = {};
   for (const c of state.connections) {
     const key = [c.from, c.to].sort().join('|');
-    pairs[key] = (pairs[key] || 0) + 1;
+    pairs[key] = (pairs[key]||0) + 1;
   }
+  // Track which pairs are drawn
   const drawn = new Set();
   for (const c of state.connections) {
     const key = [c.from, c.to].sort().join('|');
@@ -458,12 +501,17 @@ function rebuildConnections() {
     drawn.add(key);
     const mA = getMesh(c.from), mB = getMesh(c.to);
     if (!mA || !mB) continue;
-    const density = pairs[key] || 1;
-    const opacity = Math.min(0.2 + density * 0.1, 0.7);
+    const density = pairs[key]||1;
+    const opacity = Math.min(0.2 + density*0.1, 0.7);
     const geo = new THREE.BufferGeometry().setFromPoints([mA.position.clone(), mB.position.clone()]);
-    const mat = new THREE.LineBasicMaterial({ color: 0x6ea8fe, transparent: true, opacity, linewidth: 1 });
+    const mat = new THREE.LineBasicMaterial({ color:0x6ea8fe, transparent:true, opacity, linewidth:1 });
     const line = new THREE.Line(geo, mat);
-    line.userData = { from: c.from, to: c.to, density };
+    // feat 1: store connId (use first connection in pair)
+    const firstConn = state.connections.find(x => {
+      const k = [x.from, x.to].sort().join('|');
+      return k === key;
+    });
+    line.userData = { from:c.from, to:c.to, density, connKey:key, connId:firstConn?.id };
     lineGroup.add(line);
   }
 }
@@ -479,40 +527,32 @@ function updateConnectionPositions() {
   }
 }
 
-// Pending connection line
-function createPendingLine() {
+pendingLineMesh = (() => {
   const geo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]);
-  const mat = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.3 });
+  const mat = new THREE.LineBasicMaterial({ color:0xffffff, transparent:true, opacity:0.3 });
   const line = new THREE.Line(geo, mat);
-  line.visible = false;
-  scene.add(line);
-  return line;
-}
-pendingLineMesh = createPendingLine();
+  line.visible = false; scene.add(line); return line;
+})();
 
 // ═══════════════════════════════════════════
-// Folder filtering (feature 2)
+// Folder filtering (bug 2 fixed)
 // ═══════════════════════════════════════════
 
 function isThoughtVisible(t) {
-  if (!state.activeFolder) return true; // 'all' view
-  if (!t.folder) return true; // unassigned = always visible
-  return t.folder === state.activeFolder;
+  if (!state.activeFolder) return true; // 'all' = everything
+  return t.folder === state.activeFolder; // strict match — bug 2 fix
 }
 
 function applyFolderFilter() {
-  // Update thought visibility
   for (const mesh of thoughtGroup.children) {
     const t = state.thoughts.find(x => x.id === mesh.userData.id);
     if (!t) continue;
-    const visible = isThoughtVisible(t);
-    mesh.userData.targetOpacity = visible ? 0.9 : 0.04;
-    mesh.userData.targetEmissive = visible ? 0.15 : 0.02;
-    // Label visibility
+    const vis = isThoughtVisible(t);
+    mesh.userData.targetOpacity = vis ? 0.9 : 0.04;
+    mesh.userData.targetEmissive = vis ? 0.15 : 0.02;
     const label = mesh.getObjectByName('label');
-    if (label) label.material.opacity = visible ? 0.85 : 0.03;
+    if (label) label.material.opacity = vis ? 0.85 : 0.03;
   }
-  // Update connections
   for (const line of lineGroup.children) {
     const tA = state.thoughts.find(x => x.id === line.userData.from);
     const tB = state.thoughts.find(x => x.id === line.userData.to);
@@ -524,24 +564,15 @@ function applyFolderFilter() {
 
 function renderFolderBar() {
   const bar = document.getElementById('folder-bar');
-  // Only show bar if folders exist
   if (state.folders.length === 0) { bar.innerHTML = ''; return; }
-  
-  let html = `<div class="ftab${!state.activeFolder ? ' active' : ''}" data-folder="__all__">all</div>`;
-  for (const f of state.folders) {
-    html += `<div class="ftab${state.activeFolder === f ? ' active' : ''}" data-folder="${f}">${f}</div>`;
-  }
+  let html = `<div class="ftab${!state.activeFolder?' active':''}" data-folder="__all__">all</div>`;
+  for (const f of state.folders) html += `<div class="ftab${state.activeFolder===f?' active':''}" data-folder="${f}">${f}</div>`;
   bar.innerHTML = html;
-  
-  // Attach events
   bar.querySelectorAll('.ftab').forEach(el => {
     el.addEventListener('pointerdown', (e) => {
-      e.stopPropagation();
-      e.preventDefault();
-      const folder = el.dataset.folder;
-      state.activeFolder = folder === '__all__' ? null : folder;
-      applyFolderFilter();
-      save();
+      e.stopPropagation(); e.preventDefault();
+      state.activeFolder = el.dataset.folder === '__all__' ? null : el.dataset.folder;
+      applyFolderFilter(); save();
     });
   });
 }
@@ -552,10 +583,10 @@ function renderFolderBar() {
 
 function save() {
   state.camera = {
-    px: camera.position.x, py: camera.position.y, pz: camera.position.z,
-    tx: controls.target.x, ty: controls.target.y, tz: controls.target.z
+    px:camera.position.x,py:camera.position.y,pz:camera.position.z,
+    tx:controls.target.x,ty:controls.target.y,tz:controls.target.z
   };
-  try { localStorage.setItem('atem-state', JSON.stringify(state)); } catch(e) {}
+  try { localStorage.setItem('atem-state', JSON.stringify(state)); } catch(e){}
 }
 
 function load() {
@@ -563,247 +594,324 @@ function load() {
     const raw = localStorage.getItem('atem-state');
     if (!raw) return;
     const s = JSON.parse(raw);
-    state.thoughts = s.thoughts || [];
-    state.connections = s.connections || [];
-    state.folders = s.folders || [];
-    state.activeFolder = s.activeFolder || null;
-    state.openToCapture = s.openToCapture || false;
-    if (s.camera) {
-      camera.position.set(s.camera.px, s.camera.py, s.camera.pz);
-      controls.target.set(s.camera.tx, s.camera.ty, s.camera.tz);
-    }
-    // Migrate: add folder field to old thoughts
-    for (const t of state.thoughts) {
-      if (t.folder === undefined) t.folder = null;
-    }
-    // Rebuild meshes
+    state.thoughts = s.thoughts||[]; state.connections = s.connections||[];
+    state.folders = s.folders||[]; state.activeFolder = s.activeFolder||null;
+    state.openToCapture = s.openToCapture||false;
+    if (s.camera) { camera.position.set(s.camera.px,s.camera.py,s.camera.pz); controls.target.set(s.camera.tx,s.camera.ty,s.camera.tz); }
+    for (const t of state.thoughts) { if (t.folder===undefined) t.folder=null; }
     for (const t of state.thoughts) addThoughtMesh(t);
-    rebuildConnections();
-    applyFolderFilter();
-    updateCaptureToggle();
+    rebuildConnections(); applyFolderFilter(); updateCaptureToggle();
     if (state.thoughts.length > 0) hideHint();
   } catch(e) { console.warn('load failed', e); }
 }
 
 // ═══════════════════════════════════════════
-// Thought CRUD
+// CRUD
 // ═══════════════════════════════════════════
 
-function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
-const COLORS = ['#6ea8fe','#a78bfa','#f472b6','#34d399','#fbbf24','#fb923c','#f87171','#67e8f9'];
-let colorIdx = 0;
+function uid() { return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
 
 function createThought(x, y, z, text, folder) {
   const t = {
-    id: uid(), text: text || '',
-    position: [x, y, z],
+    id:uid(), text:text||'',
+    position:[x,y,z],
     color: COLORS[colorIdx++ % COLORS.length],
-    created: Date.now(), touched: Date.now(),
-    folder: folder || state.activeFolder || null
+    created:Date.now(), touched:Date.now(),
+    folder: folder!==undefined ? folder : (state.activeFolder||null)
   };
   state.thoughts.push(t);
-  const mesh = addThoughtMesh(t);
-  applyFolderFilter();
-  save();
-  hideHint();
+  addThoughtMesh(t); applyFolderFilter(); save(); hideHint();
   return t;
 }
 
-function updateThought(id, text, folder) {
-  const t = state.thoughts.find(t => t.id === id);
+function updateThought(id, text, folder, color) {
+  const t = state.thoughts.find(t => t.id===id);
   if (!t) return;
-  t.text = text;
-  t.touched = Date.now();
+  t.text = text; t.touched = Date.now();
   if (folder !== undefined) t.folder = folder;
+  if (color !== undefined) t.color = color;
   const mesh = getMesh(id);
-  if (mesh) updateLabel(mesh, text);
-  applyFolderFilter();
-  save();
+  if (mesh) {
+    updateLabel(mesh, text);
+    if (color) { mesh.material.color.set(color); mesh.material.emissive.set(color); }
+  }
+  applyFolderFilter(); save();
 }
 
 function deleteThought(id) {
-  state.thoughts = state.thoughts.filter(t => t.id !== id);
-  state.connections = state.connections.filter(c => c.from !== id && c.to !== id);
+  state.thoughts = state.thoughts.filter(t=>t.id!==id);
+  state.connections = state.connections.filter(c=>c.from!==id&&c.to!==id);
   const mesh = getMesh(id);
   if (mesh) thoughtGroup.remove(mesh);
-  rebuildConnections();
-  save();
+  rebuildConnections(); save();
 }
 
 function moveThought(id, x, y, z) {
-  const t = state.thoughts.find(t => t.id === id);
-  if (!t) return;
-  t.position = [x, y, z];
-  t.touched = Date.now();
+  const t = state.thoughts.find(t=>t.id===id);
+  if (t) { t.position=[x,y,z]; t.touched=Date.now(); }
 }
 
 function addConnection(fromId, toId) {
-  if (fromId === toId) return;
-  state.connections.push({ id: uid(), from: fromId, to: toId, created: Date.now() });
-  rebuildConnections();
-  applyFolderFilter();
-  save();
-  toast('connected');
+  if (fromId===toId) return;
+  state.connections.push({ id:uid(), from:fromId, to:toId, created:Date.now() });
+  rebuildConnections(); applyFolderFilter(); save(); toast('connected');
+}
+
+function deleteConnection(connKey) {
+  // Delete all connections in this pair
+  state.connections = state.connections.filter(c => {
+    return [c.from,c.to].sort().join('|') !== connKey;
+  });
+  rebuildConnections(); applyFolderFilter(); save(); toast('disconnected');
 }
 
 // ═══════════════════════════════════════════
-// Editor (tap-to-edit)
+// Editor
 // ═══════════════════════════════════════════
 
 const editorEl = document.getElementById('editor');
 const edText = document.getElementById('ed-text');
-const edFolderRow = document.getElementById('ed-folder-row');
 
-function renderEditorFolders() {
-  let html = '';
-  // "none" chip
-  html += `<div class="folder-chip${!editingFolder ? ' active' : ''}" data-ef="__none__">none</div>`;
-  // Existing folders
-  for (const f of state.folders) {
-    html += `<div class="folder-chip${editingFolder === f ? ' active' : ''}" data-ef="${f}">${f}</div>`;
-  }
-  // Add new
-  html += `<div class="folder-chip add-new" id="add-folder-chip">+ new</div>`;
-  html += `<input id="ed-folder-input" type="text" placeholder="name" maxlength="20">`;
-  edFolderRow.innerHTML = html;
-  
-  // Events
-  edFolderRow.querySelectorAll('.folder-chip[data-ef]').forEach(el => {
+function renderEditorColors() {
+  const row = document.getElementById('ed-color-row');
+  row.innerHTML = COLORS.map(c =>
+    `<div class="color-swatch${editingColor===c?' active':''}" data-color="${c}" style="background:${c}"></div>`
+  ).join('');
+  row.querySelectorAll('.color-swatch').forEach(el => {
     el.addEventListener('pointerdown', (e) => {
       e.stopPropagation();
-      const v = el.dataset.ef;
-      editingFolder = v === '__none__' ? null : v;
+      editingColor = el.dataset.color;
+      renderEditorColors();
+      // Live preview
+      if (editingId) {
+        const mesh = getMesh(editingId);
+        if (mesh) { mesh.material.color.set(editingColor); mesh.material.emissive.set(editingColor); }
+      }
+    });
+  });
+}
+
+function renderEditorFolders() {
+  const row = document.getElementById('ed-folder-row');
+  let html = `<div class="folder-chip${!editingFolder?' active':''}" data-ef="__none__">none</div>`;
+  for (const f of state.folders) html += `<div class="folder-chip${editingFolder===f?' active':''}" data-ef="${f}">${f}</div>`;
+  html += `<div class="folder-chip add-new" id="add-folder-chip">+ new</div>`;
+  html += `<input id="ed-folder-input" type="text" placeholder="name" maxlength="20">`;
+  row.innerHTML = html;
+  row.querySelectorAll('.folder-chip[data-ef]').forEach(el => {
+    el.addEventListener('pointerdown', (e) => {
+      e.stopPropagation();
+      editingFolder = el.dataset.ef==='__none__' ? null : el.dataset.ef;
       renderEditorFolders();
     });
   });
-  
   const addChip = document.getElementById('add-folder-chip');
-  const folderInput = document.getElementById('ed-folder-input');
-  if (addChip && folderInput) {
+  const fi = document.getElementById('ed-folder-input');
+  if (addChip && fi) {
     addChip.addEventListener('pointerdown', (e) => {
-      e.stopPropagation();
-      folderInput.style.display = 'inline-block';
-      setTimeout(() => folderInput.focus(), 50);
+      e.stopPropagation(); fi.style.display='inline-block';
+      setTimeout(()=>fi.focus(),50);
     });
-    folderInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        const name = folderInput.value.trim().toLowerCase();
-        if (name && !state.folders.includes(name)) {
-          state.folders.push(name);
-          save();
-        }
-        if (name) editingFolder = name;
-        folderInput.style.display = 'none';
-        renderEditorFolders();
-      }
-      if (e.key === 'Escape') {
-        folderInput.style.display = 'none';
-      }
-    });
-    folderInput.addEventListener('blur', () => {
-      const name = folderInput.value.trim().toLowerCase();
-      if (name && !state.folders.includes(name)) {
-        state.folders.push(name);
-        save();
-      }
+    const commitFolder = () => {
+      const name = fi.value.trim().toLowerCase();
+      if (name && !state.folders.includes(name)) { state.folders.push(name); save(); }
       if (name) editingFolder = name;
-      folderInput.style.display = 'none';
-      renderEditorFolders();
+      fi.style.display='none'; renderEditorFolders();
+    };
+    fi.addEventListener('keydown', (e) => {
+      if (e.key==='Enter') { e.preventDefault(); commitFolder(); }
+      if (e.key==='Escape') fi.style.display='none';
     });
+    fi.addEventListener('blur', commitFolder);
   }
 }
 
 function openEditor(id) {
+  clearSelection(); closeConnDeletePill();
   editingId = id;
-  const t = state.thoughts.find(t => t.id === id);
+  const t = state.thoughts.find(t=>t.id===id);
   edText.value = t ? t.text : '';
-  editingFolder = t ? (t.folder || null) : (state.activeFolder || null);
-  renderEditorFolders();
-  editorEl.classList.add('open');
-  controls.enabled = false;
-  edText.style.height = 'auto';
-  setTimeout(() => { edText.focus(); edText.selectionStart = edText.value.length; }, 50);
+  editingFolder = t ? (t.folder||null) : (state.activeFolder||null);
+  editingColor = t ? t.color : COLORS[0];
+  renderEditorColors(); renderEditorFolders();
+  editorEl.classList.add('open'); controls.enabled=false;
+  edText.style.height='auto';
+  setTimeout(()=>{ edText.focus(); edText.selectionStart=edText.value.length; }, 50);
 }
 
 function closeEditor(doSave) {
   if (doSave && editingId) {
     const text = edText.value.trim();
-    if (!text) { deleteThought(editingId); }
-    else { updateThought(editingId, text, editingFolder); }
+    if (!text) deleteThought(editingId);
+    else updateThought(editingId, text, editingFolder, editingColor);
   }
-  editingId = null;
-  editingFolder = null;
-  editorEl.classList.remove('open');
-  controls.enabled = true;
+  editingId=null; editingFolder=null; editingColor=null;
+  editorEl.classList.remove('open'); controls.enabled=true;
   renderFolderBar();
 }
 
-document.getElementById('save-btn').addEventListener('click', () => closeEditor(true));
-document.getElementById('cancel-btn').addEventListener('click', () => {
-  if (editingId) { const t = state.thoughts.find(t => t.id === editingId); if (t && !t.text) deleteThought(editingId); }
+document.getElementById('save-btn').addEventListener('click',()=>closeEditor(true));
+document.getElementById('cancel-btn').addEventListener('click',()=>{
+  if (editingId) { const t=state.thoughts.find(t=>t.id===editingId); if(t&&!t.text) deleteThought(editingId); }
   closeEditor(false);
 });
-document.getElementById('del-btn').addEventListener('click', () => {
-  if (editingId) deleteThought(editingId);
-  closeEditor(false);
+document.getElementById('del-btn').addEventListener('click',()=>{ if(editingId) deleteThought(editingId); closeEditor(false); });
+edText.addEventListener('keydown',(e)=>{
+  if(e.key==='Escape'){closeEditor(false);e.preventDefault();}
+  if(e.key==='Enter'&&!e.shiftKey&&window.innerWidth>768){closeEditor(true);e.preventDefault();}
 });
-
-edText.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') { closeEditor(false); e.preventDefault(); }
-  if (e.key === 'Enter' && !e.shiftKey && window.innerWidth > 768) { closeEditor(true); e.preventDefault(); }
-});
-edText.addEventListener('input', () => { edText.style.height = 'auto'; edText.style.height = Math.min(edText.scrollHeight, 200) + 'px'; });
+edText.addEventListener('input',()=>{ edText.style.height='auto'; edText.style.height=Math.min(edText.scrollHeight,200)+'px'; });
 
 // ═══════════════════════════════════════════
-// Zero button capture (feature 1)
+// Zero button
 // ═══════════════════════════════════════════
 
-const zeroBtn = document.getElementById('zero-btn');
 const zeroOverlay = document.getElementById('zero-overlay');
 const zeroText = document.getElementById('zero-text');
 
 function openZeroCapture() {
-  zeroText.value = '';
-  zeroOverlay.classList.add('open');
-  controls.enabled = false;
-  setTimeout(() => zeroText.focus(), 80);
+  clearSelection(); closeConnDeletePill();
+  zeroText.value=''; zeroOverlay.classList.add('open'); controls.enabled=false;
+  setTimeout(()=>zeroText.focus(),80);
 }
-
 function closeZeroCapture(doSave) {
   if (doSave) {
     const text = zeroText.value.trim();
     if (text) {
-      // Place near camera center with slight random offset
-      const center = controls.target.clone();
-      center.x += (Math.random() - 0.5) * 3;
-      center.y += (Math.random() - 0.5) * 3;
-      center.z += (Math.random() - 0.5) * 1;
-      createThought(center.x, center.y, center.z, text);
+      const c = controls.target.clone();
+      c.x+=(Math.random()-.5)*3; c.y+=(Math.random()-.5)*3; c.z+=(Math.random()-.5)*1;
+      createThought(c.x, c.y, c.z, text);
       toast('captured');
     }
   }
-  zeroOverlay.classList.remove('open');
-  controls.enabled = true;
+  zeroOverlay.classList.remove('open'); controls.enabled=true;
 }
 
-// Zero button: use pointerdown to avoid canvas swallowing
-zeroBtn.addEventListener('pointerdown', (e) => {
-  e.stopPropagation();
-  e.preventDefault();
-  openZeroCapture();
+document.getElementById('zero-btn').addEventListener('pointerdown',(e)=>{ e.stopPropagation(); e.preventDefault(); openZeroCapture(); });
+document.getElementById('zero-save').addEventListener('click',()=>closeZeroCapture(true));
+document.getElementById('zero-cancel').addEventListener('click',()=>closeZeroCapture(false));
+zeroText.addEventListener('keydown',(e)=>{
+  if(e.key==='Escape'){closeZeroCapture(false);e.preventDefault();}
+  if(e.key==='Enter'&&!e.shiftKey&&window.innerWidth>768){closeZeroCapture(true);e.preventDefault();}
+});
+zeroText.addEventListener('input',()=>{ zeroText.style.height='auto'; zeroText.style.height=Math.min(zeroText.scrollHeight,300)+'px'; });
+
+// ═══════════════════════════════════════════
+// Connection delete pill (feat 1)
+// ═══════════════════════════════════════════
+
+const connPill = document.getElementById('conn-delete-pill');
+
+function showConnDeletePill(x, y, connKey) {
+  pendingDeleteConnId = connKey;
+  connPill.style.left = x+'px'; connPill.style.top = y+'px';
+  connPill.classList.add('open');
+}
+
+function closeConnDeletePill() {
+  pendingDeleteConnId = null;
+  connPill.classList.remove('open');
+}
+
+connPill.addEventListener('pointerdown', (e) => {
+  e.stopPropagation(); e.preventDefault();
+  if (pendingDeleteConnId) deleteConnection(pendingDeleteConnId);
+  closeConnDeletePill();
 });
 
-document.getElementById('zero-save').addEventListener('click', () => closeZeroCapture(true));
-document.getElementById('zero-cancel').addEventListener('click', () => closeZeroCapture(false));
+// ═══════════════════════════════════════════
+// Lasso select (feat 3)
+// ═══════════════════════════════════════════
 
-zeroText.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') { closeZeroCapture(false); e.preventDefault(); }
-  if (e.key === 'Enter' && !e.shiftKey && window.innerWidth > 768) { closeZeroCapture(true); e.preventDefault(); }
+const lassoRect = document.getElementById('lasso-rect');
+const lassoBar = document.getElementById('lasso-bar');
+const lassoFolderPicker = document.getElementById('lasso-folder-picker');
+
+function clearSelection() {
+  selectedIds.clear();
+  lassoBar.classList.remove('open');
+  lassoFolderPicker.classList.remove('open');
+  lassoRect.style.display = 'none';
+  for (const mesh of thoughtGroup.children) {
+    const t = state.thoughts.find(x=>x.id===mesh.userData.id);
+    if (t && isThoughtVisible(t)) mesh.userData.targetEmissive = 0.15;
+  }
+}
+
+function updateLassoRect() {
+  if (!lassoStart || !lassoEnd) return;
+  const x = Math.min(lassoStart.x, lassoEnd.x);
+  const y = Math.min(lassoStart.y, lassoEnd.y);
+  const w = Math.abs(lassoEnd.x - lassoStart.x);
+  const h = Math.abs(lassoEnd.y - lassoStart.y);
+  lassoRect.style.display = 'block';
+  lassoRect.style.left = x+'px'; lassoRect.style.top = y+'px';
+  lassoRect.style.width = w+'px'; lassoRect.style.height = h+'px';
+}
+
+function finishLasso() {
+  if (!lassoStart || !lassoEnd) { lassoRect.style.display='none'; return; }
+  const x1 = Math.min(lassoStart.x, lassoEnd.x);
+  const y1 = Math.min(lassoStart.y, lassoEnd.y);
+  const x2 = Math.max(lassoStart.x, lassoEnd.x);
+  const y2 = Math.max(lassoStart.y, lassoEnd.y);
+
+  // Too small? Ignore.
+  if (x2-x1 < 20 && y2-y1 < 20) { lassoRect.style.display='none'; return; }
+
+  selectedIds.clear();
+  for (const mesh of thoughtGroup.children) {
+    const t = state.thoughts.find(x=>x.id===mesh.userData.id);
+    if (!t || !isThoughtVisible(t)) continue;
+    const sp = mesh.position.clone().project(camera);
+    const sx = (sp.x+1)/2 * window.innerWidth;
+    const sy = (1-sp.y)/2 * window.innerHeight;
+    if (sx>=x1 && sx<=x2 && sy>=y1 && sy<=y2) {
+      selectedIds.add(t.id);
+      mesh.userData.targetEmissive = 0.5;
+    }
+  }
+  lassoRect.style.display = 'none';
+  if (selectedIds.size > 0) {
+    lassoBar.classList.add('open');
+    toast(selectedIds.size + ' selected');
+  }
+}
+
+document.getElementById('lasso-clear-btn').addEventListener('pointerdown',(e)=>{ e.stopPropagation(); e.preventDefault(); clearSelection(); });
+
+document.getElementById('lasso-assign-btn').addEventListener('pointerdown',(e)=>{
+  e.stopPropagation(); e.preventDefault();
+  // Show folder picker
+  let html = '';
+  for (const f of state.folders) html += `<div class="folder-chip" data-lf="${f}">${f}</div>`;
+  html += `<div class="folder-chip add-new" id="lasso-add-folder">+ new</div>`;
+  lassoFolderPicker.innerHTML = html;
+  lassoFolderPicker.classList.add('open');
+
+  lassoFolderPicker.querySelectorAll('.folder-chip[data-lf]').forEach(el=>{
+    el.addEventListener('pointerdown',(ev)=>{
+      ev.stopPropagation(); ev.preventDefault();
+      const fname = el.dataset.lf;
+      for (const id of selectedIds) updateThought(id, state.thoughts.find(t=>t.id===id)?.text, fname);
+      toast(selectedIds.size + ' → ' + fname);
+      clearSelection();
+    });
+  });
+
+  const addBtn = document.getElementById('lasso-add-folder');
+  if (addBtn) {
+    addBtn.addEventListener('pointerdown',(ev)=>{
+      ev.stopPropagation(); ev.preventDefault();
+      const name = prompt('folder name')?.trim().toLowerCase();
+      if (!name) return;
+      if (!state.folders.includes(name)) { state.folders.push(name); save(); }
+      for (const id of selectedIds) updateThought(id, state.thoughts.find(t=>t.id===id)?.text, name);
+      toast(selectedIds.size + ' → ' + name);
+      clearSelection();
+    });
+  }
 });
-
-// Auto-resize zero textarea
-zeroText.addEventListener('input', () => { zeroText.style.height = 'auto'; zeroText.style.height = Math.min(zeroText.scrollHeight, 300) + 'px'; });
 
 // ═══════════════════════════════════════════
 // Raycast helpers
@@ -812,18 +920,26 @@ zeroText.addEventListener('input', () => { zeroText.style.height = 'auto'; zeroT
 function ndcFromEvent(e) {
   const x = e.clientX ?? e.touches?.[0]?.clientX ?? 0;
   const y = e.clientY ?? e.touches?.[0]?.clientY ?? 0;
-  pointer.set((x / window.innerWidth) * 2 - 1, -(y / window.innerHeight) * 2 + 1);
+  pointer.set((x/window.innerWidth)*2-1, -(y/window.innerHeight)*2+1);
 }
 
 function hitThought(e) {
   ndcFromEvent(e);
   raycaster.setFromCamera(pointer, camera);
-  // Only hit visible thoughts
   const visible = thoughtGroup.children.filter(m => {
-    const t = state.thoughts.find(x => x.id === m.userData.id);
+    const t = state.thoughts.find(x=>x.id===m.userData.id);
     return t && isThoughtVisible(t);
   });
   const hits = raycaster.intersectObjects(visible, false);
+  return hits.length ? hits[0].object : null;
+}
+
+// feat 1: hit connection lines
+function hitLine(e) {
+  ndcFromEvent(e);
+  raycaster.setFromCamera(pointer, camera);
+  const visibleLines = lineGroup.children.filter(l => l.visible);
+  const hits = raycaster.intersectObjects(visibleLines, false);
   return hits.length ? hits[0].object : null;
 }
 
@@ -837,12 +953,10 @@ function worldPosFromScreen(e) {
 }
 
 // ═══════════════════════════════════════════
-// Touch / Mouse interaction
+// Pointer interaction
 // ═══════════════════════════════════════════
 
-function pxFromEvent(e) {
-  return { x: e.clientX ?? e.touches?.[0]?.clientX ?? 0, y: e.clientY ?? e.touches?.[0]?.clientY ?? 0 };
-}
+function pxFromEvent(e) { return { x: e.clientX??e.touches?.[0]?.clientX??0, y: e.clientY??e.touches?.[0]?.clientY??0 }; }
 
 function isOverlayOpen() {
   return editorEl.classList.contains('open') || zeroOverlay.classList.contains('open');
@@ -852,20 +966,21 @@ function onPointerDown(e) {
   if (isOverlayOpen()) return;
   if (e.target !== canvas) return;
   if (e.touches && e.touches.length > 1) { clearHold(); return; }
-  
+
+  closeConnDeletePill();
+
   const px = pxFromEvent(e);
-  pointerStart = px;
-  pointerMoved = false;
-  holdTriggered = false;
-  isDragging = false;
-  
+  pointerStart = px; pointerMoved = false; holdTriggered = false;
+  isDragging = false; lassoActive = false; lassoHoldTriggered = false;
+
   const hit = hitThought(e);
-  
+
   if (hit) {
     draggedMesh = hit;
     const wp = worldPosFromScreen(e);
     dragOffset.copy(draggedMesh.position).sub(wp);
-    holdTimer = setTimeout(() => {
+    // Hold for connect
+    holdTimer = setTimeout(()=>{
       if (!pointerMoved) {
         holdTriggered = true;
         connectSource = draggedMesh.userData.id;
@@ -877,18 +992,28 @@ function onPointerDown(e) {
     controls.enabled = false;
   } else {
     draggedMesh = null;
+    // Start lasso hold timer (feat 3)
+    lassoStart = px;
+    lassoHoldTimer = setTimeout(()=>{
+      if (!pointerMoved) {
+        lassoHoldTriggered = true;
+        lassoActive = true;
+        if (navigator.vibrate) navigator.vibrate(20);
+      }
+    }, HOLD_MS);
     controls.enabled = true;
   }
 }
 
 function onPointerMove(e) {
   if (isOverlayOpen()) return;
-  if (e.touches && e.touches.length > 1) { clearHold(); return; }
-  
+  if (e.touches && e.touches.length > 1) { clearHold(); clearTimeout(lassoHoldTimer); lassoActive=false; lassoRect.style.display='none'; return; }
+
   const px = pxFromEvent(e);
-  const dx = px.x - pointerStart.x, dy = px.y - pointerStart.y;
-  if (Math.sqrt(dx*dx + dy*dy) > DRAG_THRESH) pointerMoved = true;
-  
+  const dx = px.x-pointerStart.x, dy = px.y-pointerStart.y;
+  if (Math.sqrt(dx*dx+dy*dy) > DRAG_THRESH) pointerMoved = true;
+
+  // Thought drag
   if (draggedMesh && !holdTriggered && pointerMoved) {
     clearTimeout(holdTimer);
     isDragging = true;
@@ -897,7 +1022,8 @@ function onPointerMove(e) {
     moveThought(draggedMesh.userData.id, draggedMesh.position.x, draggedMesh.position.y, draggedMesh.position.z);
     updateConnectionPositions();
   }
-  
+
+  // Connection drawing
   if (holdTriggered && connectSource) {
     const srcMesh = getMesh(connectSource);
     if (srcMesh) {
@@ -909,18 +1035,36 @@ function onPointerMove(e) {
     }
     const hit = hitThought(e);
     for (const child of thoughtGroup.children) {
-      const t = state.thoughts.find(x => x.id === child.userData.id);
+      const t = state.thoughts.find(x=>x.id===child.userData.id);
       if (t && isThoughtVisible(t)) {
-        child.userData.targetEmissive = (hit === child && child.userData.id !== connectSource) ? 0.5 : 0.15;
+        child.userData.targetEmissive = (hit===child && child.userData.id!==connectSource) ? 0.5 : 0.15;
       }
     }
+  }
+
+  // Lasso drag (feat 3)
+  if (lassoActive && lassoHoldTriggered) {
+    controls.enabled = false;
+    lassoEnd = px;
+    updateLassoRect();
   }
 }
 
 function onPointerUp(e) {
   if (isOverlayOpen()) return;
   clearTimeout(holdTimer);
-  
+  clearTimeout(lassoHoldTimer);
+
+  // Lasso finish
+  if (lassoActive && lassoHoldTriggered && lassoEnd) {
+    finishLasso();
+    lassoActive = false; lassoHoldTriggered = false; lassoStart = null; lassoEnd = null;
+    controls.enabled = true;
+    return;
+  }
+  lassoActive = false; lassoHoldTriggered = false; lassoStart = null; lassoEnd = null;
+  lassoRect.style.display = 'none';
+
   if (holdTriggered && connectSource) {
     pendingLineMesh.visible = false;
     const hit = hitThought(e);
@@ -928,139 +1072,169 @@ function onPointerUp(e) {
     const src = getMesh(connectSource);
     if (src) src.userData.targetEmissive = 0.15;
     for (const child of thoughtGroup.children) child.userData.targetEmissive = 0.15;
-    connectSource = null;
-    applyFolderFilter();
+    connectSource = null; applyFolderFilter();
   } else if (isDragging && draggedMesh) {
     save();
   } else if (draggedMesh && !pointerMoved) {
     openEditor(draggedMesh.userData.id);
   } else if (!draggedMesh && !pointerMoved) {
-    const wp = worldPosFromScreen(e);
-    const t = createThought(wp.x, wp.y, wp.z);
-    openEditor(t.id);
+    // Clear selection if tapping empty space with active selection
+    if (selectedIds.size > 0) { clearSelection(); }
+    else {
+      // Check line hit (feat 1)
+      const lineHit = hitLine(e);
+      if (lineHit && lineHit.userData.connKey) {
+        const px = pxFromEvent(e);
+        showConnDeletePill(px.x, px.y, lineHit.userData.connKey);
+      } else {
+        // Create new thought
+        const wp = worldPosFromScreen(e);
+        const t = createThought(wp.x, wp.y, wp.z);
+        openEditor(t.id);
+      }
+    }
   }
-  
-  draggedMesh = null;
-  isDragging = false;
-  holdTriggered = false;
-  controls.enabled = true;
+
+  draggedMesh = null; isDragging = false; holdTriggered = false; controls.enabled = true;
 }
 
 function clearHold() {
-  clearTimeout(holdTimer);
-  holdTriggered = false;
+  clearTimeout(holdTimer); holdTriggered = false;
   if (connectSource) {
     const src = getMesh(connectSource);
     if (src) src.userData.targetEmissive = 0.15;
-    connectSource = null;
-    pendingLineMesh.visible = false;
+    connectSource = null; pendingLineMesh.visible = false;
   }
 }
 
-canvas.addEventListener('touchstart', onPointerDown, { passive: false });
-canvas.addEventListener('touchmove', (e) => { e.preventDefault(); onPointerMove(e); }, { passive: false });
+canvas.addEventListener('touchstart', onPointerDown, { passive:false });
+canvas.addEventListener('touchmove', (e)=>{ e.preventDefault(); onPointerMove(e); }, { passive:false });
 canvas.addEventListener('touchend', onPointerUp);
-canvas.addEventListener('touchcancel', () => { clearHold(); draggedMesh = null; isDragging = false; controls.enabled = true; });
+canvas.addEventListener('touchcancel', ()=>{ clearHold(); clearTimeout(lassoHoldTimer); lassoActive=false; lassoRect.style.display='none'; draggedMesh=null; isDragging=false; controls.enabled=true; });
 canvas.addEventListener('mousedown', onPointerDown);
 window.addEventListener('mousemove', onPointerMove);
 window.addEventListener('mouseup', onPointerUp);
 
 // ═══════════════════════════════════════════
-// Menu (bug fix 0: pointerdown instead of click)
+// Menu (bug 1 fixed)
 // ═══════════════════════════════════════════
 
 const menuEl = document.getElementById('menu');
 const menuPill = document.getElementById('menu-pill');
 
+// Open: pointerdown (stays)
 menuPill.addEventListener('pointerdown', (e) => {
-  e.stopPropagation();
-  e.preventDefault();
+  e.stopPropagation(); e.preventDefault();
   menuOpen = !menuOpen;
   menuEl.classList.toggle('open', menuOpen);
 });
 
-// Close menu on outside tap
-document.addEventListener('pointerdown', (e) => {
+// Close: click (bug 1 fix — no longer races with pointerdown)
+document.addEventListener('click', (e) => {
   if (menuOpen && !menuEl.contains(e.target) && e.target !== menuPill) {
-    menuOpen = false;
-    menuEl.classList.remove('open');
+    menuOpen = false; menuEl.classList.remove('open');
   }
 });
 
-document.getElementById('btn-reset-view').addEventListener('click', () => {
-  camera.position.set(0, 0, 18);
-  controls.target.set(0, 0, 0);
-  menuOpen = false; menuEl.classList.remove('open');
-  save();
-});
-
 document.getElementById('btn-export').addEventListener('click', () => {
-  const data = JSON.stringify({ thoughts: state.thoughts, connections: state.connections, folders: state.folders }, null, 2);
-  const blob = new Blob([data], { type: 'application/json' });
+  const data = JSON.stringify({ thoughts:state.thoughts, connections:state.connections, folders:state.folders }, null, 2);
+  const blob = new Blob([data],{type:'application/json'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = `atem-${new Date().toISOString().slice(0,10)}.json`;
+  a.href=url; a.download=`atem-${new Date().toISOString().slice(0,10)}.json`;
   a.click(); URL.revokeObjectURL(url);
-  menuOpen = false; menuEl.classList.remove('open');
-  toast('exported');
+  menuOpen=false; menuEl.classList.remove('open'); toast('exported');
 });
 
 document.getElementById('btn-import').addEventListener('click', () => {
   const input = document.createElement('input');
-  input.type = 'file'; input.accept = '.json';
+  input.type='file'; input.accept='.json';
   input.onchange = (ev) => {
-    const file = ev.target.files[0];
-    if (!file) return;
+    const file = ev.target.files[0]; if(!file) return;
     const reader = new FileReader();
     reader.onload = (r) => {
       try {
         const data = JSON.parse(r.target.result);
         if (data.thoughts) {
-          while (thoughtGroup.children.length) thoughtGroup.remove(thoughtGroup.children[0]);
-          while (lineGroup.children.length) lineGroup.remove(lineGroup.children[0]);
-          state.thoughts = data.thoughts;
-          state.connections = data.connections || [];
-          state.folders = data.folders || [];
-          // Migrate
-          for (const t of state.thoughts) { if (t.folder === undefined) t.folder = null; }
-          for (const t of state.thoughts) addThoughtMesh(t);
-          rebuildConnections();
-          applyFolderFilter();
-          save();
-          toast('imported ' + state.thoughts.length + ' thoughts');
-          if (state.thoughts.length > 0) hideHint();
+          while(thoughtGroup.children.length) thoughtGroup.remove(thoughtGroup.children[0]);
+          while(lineGroup.children.length) lineGroup.remove(lineGroup.children[0]);
+          state.thoughts=data.thoughts; state.connections=data.connections||[];
+          state.folders=data.folders||[];
+          for(const t of state.thoughts){if(t.folder===undefined)t.folder=null;}
+          for(const t of state.thoughts) addThoughtMesh(t);
+          rebuildConnections(); applyFolderFilter(); save();
+          toast('imported '+state.thoughts.length+' thoughts');
+          if(state.thoughts.length>0) hideHint();
         }
-      } catch(err) { toast('import failed'); }
+      } catch(err){toast('import failed');}
     };
     reader.readAsText(file);
   };
-  input.click();
-  menuOpen = false; menuEl.classList.remove('open');
+  input.click(); menuOpen=false; menuEl.classList.remove('open');
 });
 
-// Feature 3: open to capture toggle
+// Open to capture toggle
 function updateCaptureToggle() {
   const dot = document.getElementById('capture-toggle-dot');
   if (dot) dot.classList.toggle('on', !!state.openToCapture);
 }
-
 document.getElementById('btn-open-capture').addEventListener('click', () => {
-  state.openToCapture = !state.openToCapture;
-  updateCaptureToggle();
-  save();
-  toast(state.openToCapture ? 'will open to capture' : 'will open to board');
-  menuOpen = false; menuEl.classList.remove('open');
+  state.openToCapture=!state.openToCapture; updateCaptureToggle(); save();
+  toast(state.openToCapture?'will open to capture':'will open to board');
+  menuOpen=false; menuEl.classList.remove('open');
 });
 
 document.getElementById('btn-clear').addEventListener('click', () => {
-  if (!confirm('clear all thoughts?')) return;
-  state.thoughts = []; state.connections = []; state.folders = []; state.activeFolder = null;
-  while (thoughtGroup.children.length) thoughtGroup.remove(thoughtGroup.children[0]);
-  while (lineGroup.children.length) lineGroup.remove(lineGroup.children[0]);
-  renderFolderBar();
-  save();
-  menuOpen = false; menuEl.classList.remove('open');
-  toast('cleared');
+  if(!confirm('clear all thoughts?')) return;
+  state.thoughts=[]; state.connections=[]; state.folders=[]; state.activeFolder=null;
+  while(thoughtGroup.children.length) thoughtGroup.remove(thoughtGroup.children[0]);
+  while(lineGroup.children.length) lineGroup.remove(lineGroup.children[0]);
+  renderFolderBar(); save();
+  menuOpen=false; menuEl.classList.remove('open'); toast('cleared');
+});
+
+// ─── Dev tools (feat 5) ───
+
+document.getElementById('btn-reset-view').addEventListener('click', () => {
+  camera.position.set(0,0,18); controls.target.set(0,0,0); save();
+  menuOpen=false; menuEl.classList.remove('open');
+});
+
+document.getElementById('btn-dump-state').addEventListener('click', () => {
+  console.log(JSON.stringify(state, null, 2));
+  menuOpen=false; menuEl.classList.remove('open'); toast('state → console');
+});
+
+document.getElementById('btn-force-save').addEventListener('click', () => {
+  save(); menuOpen=false; menuEl.classList.remove('open'); toast('saved');
+});
+
+document.getElementById('btn-show-orphans').addEventListener('click', () => {
+  const connected = new Set();
+  for(const c of state.connections){connected.add(c.from);connected.add(c.to);}
+  let count=0;
+  for(const mesh of thoughtGroup.children){
+    if(!connected.has(mesh.userData.id)){
+      count++;
+      // Pulse red
+      mesh.material.emissive.set('#ff4444');
+      mesh.material.emissiveIntensity=0.8;
+      setTimeout(()=>{
+        const t=state.thoughts.find(x=>x.id===mesh.userData.id);
+        if(t){mesh.material.emissive.set(t.color||'#6ea8fe');}
+        mesh.userData.targetEmissive=0.15;
+      },1500);
+    }
+  }
+  menuOpen=false; menuEl.classList.remove('open');
+  toast(count+' orphan'+(count!==1?'s':''));
+});
+
+document.getElementById('btn-toggle-fps').addEventListener('click', () => {
+  showFps=!showFps;
+  document.getElementById('fps').classList.toggle('on', showFps);
+  document.getElementById('fps-dot').classList.toggle('on', showFps);
+  menuOpen=false; menuEl.classList.remove('open');
 });
 
 // ═══════════════════════════════════════════
@@ -1068,32 +1242,30 @@ document.getElementById('btn-clear').addEventListener('click', () => {
 // ═══════════════════════════════════════════
 
 function toast(msg) {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 1800);
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),1800);
 }
-
 function hideHint() {
-  if (!hintVisible) return;
-  hintVisible = false;
-  const h = document.getElementById('hint');
-  h.style.opacity = '0';
-  setTimeout(() => h.style.display = 'none', 800);
+  if(!hintVisible) return; hintVisible=false;
+  const h=document.getElementById('hint');
+  h.style.opacity='0'; setTimeout(()=>h.style.display='none',800);
 }
 
 // ═══════════════════════════════════════════
-// Stats
+// Stats & FPS
 // ═══════════════════════════════════════════
+
+let fpsFrames=0, fpsLast=performance.now(), fpsValue=0;
 
 function updateStats() {
-  const el = document.getElementById('stats');
-  const tc = state.thoughts.length, cc = state.connections.length;
-  if (tc === 0) { el.textContent = ''; return; }
-  let s = `${tc} thought${tc !== 1 ? 's' : ''}`;
-  if (cc > 0) s += ` · ${cc} connection${cc !== 1 ? 's' : ''}`;
-  if (state.activeFolder) s += ` · ${state.activeFolder}`;
-  el.textContent = s;
+  const el=document.getElementById('stats');
+  const tc=state.thoughts.length, cc=state.connections.length;
+  if(tc===0){el.textContent='';return;}
+  let s=`${tc} thought${tc!==1?'s':''}`;
+  if(cc>0) s+=` · ${cc} connection${cc!==1?'s':''}`;
+  if(state.activeFolder) s+=` · ${state.activeFolder}`;
+  el.textContent=s;
 }
 
 // ═══════════════════════════════════════════
@@ -1104,34 +1276,37 @@ let lastTime = performance.now();
 
 function animate() {
   requestAnimationFrame(animate);
-  const now = performance.now();
-  const dt = (now - lastTime) / 1000;
-  lastTime = now;
-  
-  controls.update();
-  
-  for (const mesh of thoughtGroup.children) {
-    const ud = mesh.userData;
-    ud.breath += dt * 0.8;
-    
-    // Gentle float
-    if (!isDragging || mesh !== draggedMesh) {
-      mesh.position.y += Math.sin(ud.breath) * 0.0003;
-      mesh.position.x += Math.cos(ud.breath * 0.7) * 0.0002;
-    }
-    
-    // Emissive lerp
-    const ce = mesh.material.emissiveIntensity;
-    const te = ud.targetEmissive + Math.sin(ud.breath) * 0.03;
-    mesh.material.emissiveIntensity += (te - ce) * 0.1;
-    
-    // Opacity lerp (for folder filtering)
-    const co = mesh.material.opacity;
-    const to = ud.targetOpacity;
-    mesh.material.opacity += (to - co) * 0.08;
+  const now=performance.now();
+  const dt=(now-lastTime)/1000;
+  lastTime=now;
+
+  // FPS
+  fpsFrames++;
+  if(now-fpsLast>=500){
+    fpsValue=Math.round(fpsFrames/((now-fpsLast)/1000));
+    fpsFrames=0; fpsLast=now;
+    if(showFps) document.getElementById('fps').textContent=fpsValue+' fps';
   }
-  
-  if (lineGroup.children.length > 0) updateConnectionPositions();
+
+  controls.update();
+
+  for(const mesh of thoughtGroup.children){
+    const ud=mesh.userData;
+    ud.breath+=dt*0.8;
+    if(!isDragging||mesh!==draggedMesh){
+      mesh.position.y+=Math.sin(ud.breath)*0.0003;
+      mesh.position.x+=Math.cos(ud.breath*0.7)*0.0002;
+    }
+    // Emissive lerp
+    const ce=mesh.material.emissiveIntensity;
+    const te=ud.targetEmissive+Math.sin(ud.breath)*0.03;
+    mesh.material.emissiveIntensity+=(te-ce)*0.1;
+    // Opacity lerp
+    const co=mesh.material.opacity;
+    mesh.material.opacity+=(ud.targetOpacity-co)*0.08;
+  }
+
+  if(lineGroup.children.length>0) updateConnectionPositions();
   updateStats();
   renderer.render(scene, camera);
 }
@@ -1140,10 +1315,10 @@ function animate() {
 // Resize
 // ═══════════════════════════════════════════
 
-window.addEventListener('resize', () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
+window.addEventListener('resize',()=>{
+  camera.aspect=window.innerWidth/window.innerHeight;
   camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setSize(window.innerWidth,window.innerHeight);
 });
 
 // ═══════════════════════════════════════════
@@ -1152,21 +1327,10 @@ window.addEventListener('resize', () => {
 
 load();
 animate();
-
-// Feature 3: open to capture on launch
-if (state.openToCapture) {
-  setTimeout(() => openZeroCapture(), 200);
-}
-
-// Auto-save periodically
-setInterval(save, 10000);
-
-// Service worker
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js').catch(() => {});
-}
-
-console.log('atem — alive');
+if(state.openToCapture) setTimeout(()=>openZeroCapture(),200);
+setInterval(save,10000);
+if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+console.log('atem v3 — alive');
 </script>
 </body>
 </html>
