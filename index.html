@@ -1,1258 +1,814 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0, viewport-fit=cover">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="atem">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="theme-color" content="#000000">
-  <meta name="format-detection" content="telephone=no">
-  <title>atem</title>
-  <link rel="manifest" href="manifest.json">
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-      -webkit-touch-callout: none;
-    }
-    
-    html, body {
-      height: 100%;
-      overflow: hidden;
-      background: #000;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-      touch-action: none;
-    }
-    
-    #canvas {
-      width: 100%;
-      height: 100%;
-      display: block;
-    }
-    
-    /* Text editor overlay */
-    #editor {
-      position: fixed;
-      display: none;
-      background: rgba(0, 0, 0, 0.95);
-      border: 1px solid rgba(96, 165, 250, 0.3);
-      border-radius: 12px;
-      padding: 14px 18px;
-      color: #fff;
-      font-size: 17px;
-      font-family: inherit;
-      min-width: 140px;
-      max-width: 300px;
-      outline: none;
-      resize: none;
-      line-height: 1.5;
-      z-index: 1000;
-      transform: translate(-50%, -50%);
-      box-shadow: 0 0 30px rgba(96, 165, 250, 0.15);
-    }
-    
-    #editor::placeholder {
-      color: rgba(255, 255, 255, 0.25);
-    }
-    
-    /* Daily prompt */
-    #prompt {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      text-align: center;
-      z-index: 900;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.5s ease;
-    }
-    
-    #prompt.show {
-      opacity: 1;
-      pointer-events: auto;
-    }
-    
-    #prompt-text {
-      color: rgba(255, 255, 255, 0.6);
-      font-size: 20px;
-      font-weight: 300;
-      letter-spacing: 0.02em;
-      margin-bottom: 20px;
-      line-height: 1.6;
-    }
-    
-    #prompt-dismiss {
-      color: rgba(255, 255, 255, 0.3);
-      font-size: 13px;
-      cursor: pointer;
-      transition: color 0.2s;
-    }
-    
-    #prompt-dismiss:hover {
-      color: rgba(255, 255, 255, 0.6);
-    }
-    
-    /* Stats panel */
-    #stats {
-      position: fixed;
-      bottom: 20px;
-      left: 20px;
-      color: rgba(255, 255, 255, 0.25);
-      font-size: 11px;
-      font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
-      letter-spacing: 0.05em;
-      z-index: 100;
-      pointer-events: none;
-      transition: opacity 0.3s;
-    }
-    
-    #stats span {
-      margin-right: 16px;
-    }
-    
-    /* Menu button */
-    #menu-btn {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      transition: background 0.2s, border-color 0.2s;
-    }
-    
-    #menu-btn:hover {
-      background: rgba(255, 255, 255, 0.1);
-      border-color: rgba(255, 255, 255, 0.2);
-    }
-    
-    #menu-btn svg {
-      width: 18px;
-      height: 18px;
-      fill: rgba(255, 255, 255, 0.5);
-    }
-    
-    /* Menu panel */
-    #menu {
-      position: fixed;
-      bottom: 70px;
-      right: 20px;
-      background: rgba(10, 10, 10, 0.95);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      padding: 8px 0;
-      min-width: 180px;
-      z-index: 1001;
-      display: none;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-    }
-    
-    #menu.open { display: block; }
-    
-    .menu-item {
-      padding: 12px 18px;
-      color: rgba(255, 255, 255, 0.7);
-      font-size: 14px;
-      cursor: pointer;
-      transition: background 0.15s, color 0.15s;
-    }
-    
-    .menu-item:hover {
-      background: rgba(255, 255, 255, 0.05);
-      color: #fff;
-    }
-    
-    .menu-item.danger {
-      color: #ef4444;
-    }
-    
-    .menu-divider {
-      height: 1px;
-      background: rgba(255, 255, 255, 0.08);
-      margin: 6px 0;
-    }
-    
-    /* Sync indicator */
-    #sync {
-      position: fixed;
-      top: 16px;
-      right: 16px;
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: #60a5fa;
-      opacity: 0;
-      transition: opacity 0.3s;
-      z-index: 1000;
-    }
-    #sync.saving { opacity: 0.6; }
-    #sync.saved { opacity: 0.3; }
-    
-    /* Toast */
-    #toast {
-      position: fixed;
-      bottom: 80px;
-      left: 50%;
-      transform: translateX(-50%) translateY(20px);
-      background: rgba(255, 255, 255, 0.95);
-      color: #000;
-      padding: 10px 20px;
-      border-radius: 20px;
-      font-size: 14px;
-      opacity: 0;
-      transition: opacity 0.2s, transform 0.2s;
-      z-index: 2000;
-      pointer-events: none;
-    }
-    #toast.show {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0a0f">
+<meta name="mobile-web-app-capable" content="yes">
+<title>atem</title>
+<link rel="manifest" href="manifest.json">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0a0f;font-family:'SF Pro Text',-apple-system,system-ui,sans-serif;color:#e8e4df;touch-action:none}
+canvas{display:block;width:100%!important;height:100%!important;position:fixed;top:0;left:0}
+
+/* Text input overlay */
+#text-input-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(6,6,10,0.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:none;z-index:100;align-items:center;justify-content:center;flex-direction:column;opacity:0;transition:opacity .2s ease}
+#text-input-overlay.active{display:flex;opacity:1}
+#thought-input{background:transparent;border:none;border-bottom:1px solid rgba(232,228,223,0.15);color:#e8e4df;font-size:22px;font-family:'SF Pro Text',-apple-system,system-ui,sans-serif;font-weight:300;letter-spacing:0.3px;text-align:center;padding:16px 32px;width:80%;max-width:400px;outline:none;caret-color:#7eb8da}
+#thought-input::placeholder{color:rgba(232,228,223,0.2)}
+#input-hint{font-size:11px;color:rgba(232,228,223,0.18);margin-top:14px;letter-spacing:1.5px;text-transform:uppercase;font-weight:500}
+
+/* Delete zone */
+#delete-zone{position:fixed;bottom:0;left:0;width:100%;height:90px;display:none;align-items:center;justify-content:center;z-index:50;background:linear-gradient(to top,rgba(200,60,60,0.25),transparent);transition:opacity .15s ease}
+#delete-zone.active{display:flex}
+#delete-zone.hot{background:linear-gradient(to top,rgba(220,50,50,0.5),transparent)}
+#delete-label{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:rgba(220,130,130,0.6);font-weight:500;padding-bottom:env(safe-area-inset-bottom,0)}
+#delete-zone.hot #delete-label{color:rgba(240,100,100,0.9)}
+
+/* Search */
+#search-bar{position:fixed;top:env(safe-area-inset-top,12px);left:50%;transform:translateX(-50%);z-index:60;opacity:0;pointer-events:none;transition:opacity .2s ease}
+#search-bar.active{opacity:1;pointer-events:all}
+#search-input{background:rgba(30,30,40,0.8);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(232,228,223,0.08);border-radius:20px;color:#e8e4df;font-size:15px;font-family:'SF Pro Text',-apple-system,system-ui,sans-serif;font-weight:300;padding:10px 20px;width:260px;outline:none;caret-color:#7eb8da}
+#search-input::placeholder{color:rgba(232,228,223,0.2)}
+
+/* Pill actions */
+.pill-btn{position:fixed;z-index:60;width:40px;height:40px;border-radius:50%;background:rgba(30,30,40,0.6);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(232,228,223,0.06);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .15s ease,opacity .15s ease}
+.pill-btn:active{transform:scale(0.9)}
+.pill-btn svg{width:18px;height:18px;stroke:rgba(232,228,223,0.4);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+#btn-search{bottom:calc(28px + env(safe-area-inset-bottom,0));right:20px}
+#btn-recenter{bottom:calc(28px + env(safe-area-inset-bottom,0));left:20px}
+
+/* Connection preview line */
+#connect-line{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:40}
+
+/* Subtle pulse for thoughts */
+@keyframes breathe{0%,100%{opacity:0.85}50%{opacity:1}}
+</style>
 </head>
 <body>
-  <canvas id="canvas"></canvas>
-  <textarea id="editor" placeholder="think..." rows="1"></textarea>
-  
-  <div id="prompt">
-    <div id="prompt-text"></div>
-    <div id="prompt-dismiss">tap anywhere to begin</div>
-  </div>
-  
-  <div id="stats">
-    <span id="stat-thoughts">0 thoughts</span>
-    <span id="stat-connections">0 connections</span>
-  </div>
-  
-  <button id="menu-btn">
-    <svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
-  </button>
-  
-  <div id="menu">
-    <div class="menu-item" id="menu-export">Export JSON</div>
-    <div class="menu-item" id="menu-import">Import JSON</div>
-    <div class="menu-divider"></div>
-    <div class="menu-item" id="menu-reset-view">Reset View</div>
-    <div class="menu-item" id="menu-new-prompt">New Prompt</div>
-    <div class="menu-divider"></div>
-    <div class="menu-item danger" id="menu-clear">Clear All</div>
-  </div>
-  
-  <div id="sync"></div>
-  <div id="toast"></div>
-  
-  <input type="file" id="import-input" accept=".json" style="display:none">
+
+<div id="text-input-overlay">
+  <input type="text" id="thought-input" placeholder="what are you thinking?" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+  <div id="input-hint">return to save · esc to cancel</div>
+</div>
+
+<div id="delete-zone"><div id="delete-label">release to delete</div></div>
+
+<div id="search-bar">
+  <input type="text" id="search-input" placeholder="find a thought..." autocomplete="off">
+</div>
+
+<button class="pill-btn" id="btn-search">
+  <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
+</button>
+<button class="pill-btn" id="btn-recenter">
+  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>
+</button>
+
+<svg id="connect-line"><line id="drag-line" stroke="rgba(126,184,218,0.4)" stroke-width="1.5" stroke-dasharray="6,4" x1="0" y1="0" x2="0" y2="0" style="display:none"/></svg>
 
 <script type="importmap">
-{
-  "imports": {
-    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
-  }
-}
+{"imports":{"three":"https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.module.js"}}
 </script>
-
 <script type="module">
 import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-// ════════════════════════════════════════════════════════════════
-// Config
-// ════════════════════════════════════════════════════════════════
-
-const STORAGE_KEY = 'atem3d';
-const HOLD_MS = 300;
-const FLOAT_INTENSITY = 0.015;
-const FLOAT_SPEED = 0.0008;
-const MOMENTUM_FRICTION = 0.94;
-const MOMENTUM_MIN = 0.01;
-
-// ════════════════════════════════════════════════════════════════
-// Daily Prompts
-// ════════════════════════════════════════════════════════════════
-
-const PROMPTS = [
-  "what's on your mind?",
-  "what did you notice today?",
-  "what's unresolved?",
-  "what are you avoiding?",
-  "what would make today good?",
-  "what's the question you're not asking?",
-  "where is your attention?",
-  "what's changing?",
-  "what are you grateful for?",
-  "what needs to be said?",
-  "what are you holding onto?",
-  "what would you do if you weren't afraid?",
-  "what's the simplest next step?",
-  "who are you becoming?",
-  "what pattern do you see?",
-  "what's the connection you're missing?",
-  "what deserves more attention?",
-  "what's ready to let go?",
-  "what's emerging?",
-  "what do you know that you're pretending not to know?"
-];
-
-// ════════════════════════════════════════════════════════════════
-// State
-// ════════════════════════════════════════════════════════════════
-
-let state = {
-  thoughts: [],
-  connections: [],
-  camera: { x: 0, y: 0, z: 30 },
-  lastPromptDate: null
+// ─── STATE ──────────────────────────────────────────────────────────
+const S = {
+  thoughts: [],    // {id, text, x, y, z, color, vx, vy, vz}
+  connections: [], // {id, from, to}
+  nextId: 1
 };
 
-// ════════════════════════════════════════════════════════════════
-// DOM
-// ════════════════════════════════════════════════════════════════
+function uid(){ return S.nextId++; }
+function save(){
+  localStorage.setItem('atem_state', JSON.stringify(S));
+}
+function load(){
+  try {
+    const d = JSON.parse(localStorage.getItem('atem_state'));
+    if(d){
+      S.thoughts = d.thoughts || [];
+      S.connections = d.connections || [];
+      S.nextId = d.nextId || 1;
+    }
+  } catch(e){}
+}
 
-const canvas = document.getElementById('canvas');
-const editor = document.getElementById('editor');
-const syncDot = document.getElementById('sync');
-const toast = document.getElementById('toast');
-const promptEl = document.getElementById('prompt');
-const promptText = document.getElementById('prompt-text');
-const statsEl = document.getElementById('stats');
-const statThoughts = document.getElementById('stat-thoughts');
-const statConnections = document.getElementById('stat-connections');
-const menuBtn = document.getElementById('menu-btn');
-const menu = document.getElementById('menu');
-const importInput = document.getElementById('import-input');
-
-// ════════════════════════════════════════════════════════════════
-// Three.js Setup
-// ════════════════════════════════════════════════════════════════
-
+// ─── THREE.JS SETUP ────────────────────────────────────────────────
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x000000);
+scene.background = new THREE.Color(0x0a0a0f);
+scene.fog = new THREE.FogExp2(0x0a0a0f, 0.0025);
 
-// Subtle fog for depth
-scene.fog = new THREE.Fog(0x000000, 30, 100);
+const camera = new THREE.PerspectiveCamera(60, innerWidth/innerHeight, 0.1, 2000);
+camera.position.set(0, 0, 80);
 
-const camera = new THREE.PerspectiveCamera(
-  60,
-  window.innerWidth / window.innerHeight,
-  0.1,
-  1000
-);
-camera.position.set(0, 0, 30);
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+document.body.prepend(renderer.domElement);
 
-const renderer = new THREE.WebGLRenderer({ 
-  canvas, 
-  antialias: true,
-  alpha: false
-});
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+// Lights
+const amb = new THREE.AmbientLight(0x404050, 0.6);
+scene.add(amb);
+const dir = new THREE.DirectionalLight(0xeeeeff, 0.8);
+dir.position.set(40, 60, 50);
+scene.add(dir);
+const pt = new THREE.PointLight(0x7eb8da, 0.4, 300);
+pt.position.set(0, 0, 60);
+scene.add(pt);
 
-// Orbit controls
-const controls = new OrbitControls(camera, canvas);
-controls.enableDamping = true;
-controls.dampingFactor = 0.08;
-controls.rotateSpeed = 0.5;
-controls.zoomSpeed = 0.8;
-controls.panSpeed = 0.5;
-controls.minDistance = 5;
-controls.maxDistance = 100;
+// ─── MATERIALS & GEOMETRIES ────────────────────────────────────────
+const PALETTE = [
+  0x7eb8da, 0xb8a9c9, 0xd4a574, 0x8fc1a9, 0xdaa5a5,
+  0xa5c0d4, 0xc9b896, 0x96b8c9, 0xc4a1b2, 0xa8c4a0
+];
+function pickColor(){ return PALETTE[Math.floor(Math.random()*PALETTE.length)]; }
 
-// Lighting
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
-scene.add(ambientLight);
+const sphereGeo = new THREE.SphereGeometry(1, 24, 24);
+const lineMat = new THREE.LineBasicMaterial({ color: 0x7eb8da, transparent: true, opacity: 0.2 });
 
-const pointLight = new THREE.PointLight(0xffffff, 0.8);
-pointLight.position.set(10, 20, 15);
-scene.add(pointLight);
+function makeNodeMaterial(color){
+  return new THREE.MeshStandardMaterial({
+    color,
+    roughness: 0.55,
+    metalness: 0.15,
+    transparent: true,
+    opacity: 0.92
+  });
+}
 
-const pointLight2 = new THREE.PointLight(0x60a5fa, 0.3);
-pointLight2.position.set(-15, -10, 10);
-scene.add(pointLight2);
+// ─── SPRITE TEXT ────────────────────────────────────────────────────
+function makeTextSprite(text, scale=1){
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  const fontSize = 42;
+  ctx.font = `300 ${fontSize}px -apple-system, system-ui, sans-serif`;
+  const metrics = ctx.measureText(text);
+  const w = Math.min(metrics.width + 40, 512);
+  canvas.width = w;
+  canvas.height = fontSize + 24;
+  ctx.font = `300 ${fontSize}px -apple-system, system-ui, sans-serif`;
+  ctx.fillStyle = 'rgba(232,228,223,0.88)';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, w/2, canvas.height/2, w-20);
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.minFilter = THREE.LinearFilter;
+  const spriteMat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false, sizeAttenuation: true });
+  const sprite = new THREE.Sprite(spriteMat);
+  sprite.scale.set((w/canvas.height)*3*scale, 3*scale, 1);
+  return sprite;
+}
 
-// ════════════════════════════════════════════════════════════════
-// Thought Management
-// ════════════════════════════════════════════════════════════════
+// ─── SCENE OBJECTS ─────────────────────────────────────────────────
+const nodeGroup = new THREE.Group();
+scene.add(nodeGroup);
+const lineGroup = new THREE.Group();
+scene.add(lineGroup);
 
-const thoughtMeshes = new Map();
-const thoughtData = new Map(); // Extra runtime data per thought
+const meshMap = new Map();    // id -> {mesh, sprite, data}
+const lineMap = new Map();    // conn.id -> line
+
+function baseRadius(thought){
+  const conns = S.connections.filter(c => c.from === thought.id || c.to === thought.id).length;
+  return 1.2 + conns * 0.15;
+}
+
+function addThoughtToScene(t){
+  const col = t.color || 0x7eb8da;
+  const mat = makeNodeMaterial(col);
+  const mesh = new THREE.Mesh(sphereGeo, mat);
+  const r = baseRadius(t);
+  mesh.scale.set(r, r, r);
+  mesh.position.set(t.x, t.y, t.z);
+  mesh.userData = { id: t.id };
+  nodeGroup.add(mesh);
+
+  const sprite = makeTextSprite(t.text || '');
+  sprite.position.set(t.x, t.y + r + 2.2, t.z);
+  nodeGroup.add(sprite);
+
+  meshMap.set(t.id, { mesh, sprite, data: t });
+}
+
+function addConnectionToScene(c){
+  const a = meshMap.get(c.from);
+  const b = meshMap.get(c.to);
+  if(!a || !b) return;
+  const pts = [a.mesh.position.clone(), b.mesh.position.clone()];
+  const geo = new THREE.BufferGeometry().setFromPoints(pts);
+  const mat = new THREE.LineBasicMaterial({ color: 0x7eb8da, transparent: true, opacity: 0.18 });
+  const line = new THREE.Line(geo, mat);
+  line.userData = { connId: c.id };
+  lineGroup.add(line);
+  lineMap.set(c.id, line);
+}
+
+function rebuildScene(){
+  while(nodeGroup.children.length) nodeGroup.remove(nodeGroup.children[0]);
+  while(lineGroup.children.length) lineGroup.remove(lineGroup.children[0]);
+  meshMap.clear();
+  lineMap.clear();
+  S.thoughts.forEach(t => addThoughtToScene(t));
+  S.connections.forEach(c => addConnectionToScene(c));
+}
+
+function updateNodeSizes(){
+  S.thoughts.forEach(t => {
+    const entry = meshMap.get(t.id);
+    if(!entry) return;
+    const r = baseRadius(t);
+    entry.mesh.scale.set(r, r, r);
+  });
+}
+
+function updateLines(){
+  S.connections.forEach(c => {
+    const line = lineMap.get(c.id);
+    if(!line) return;
+    const a = meshMap.get(c.from);
+    const b = meshMap.get(c.to);
+    if(!a || !b) return;
+    const pos = line.geometry.attributes.position;
+    pos.setXYZ(0, a.mesh.position.x, a.mesh.position.y, a.mesh.position.z);
+    pos.setXYZ(1, b.mesh.position.x, b.mesh.position.y, b.mesh.position.z);
+    pos.needsUpdate = true;
+  });
+}
+
+function updateSpritePositions(){
+  meshMap.forEach(entry => {
+    const r = baseRadius(entry.data);
+    entry.sprite.position.set(
+      entry.mesh.position.x,
+      entry.mesh.position.y + r + 2.2,
+      entry.mesh.position.z
+    );
+  });
+}
+
+// ─── ORBIT CONTROLS (minimal custom) ──────────────────────────────
+const orbit = {
+  target: new THREE.Vector3(0,0,0),
+  spherical: new THREE.Spherical(80, Math.PI/2, 0),
+  dampedSpherical: new THREE.Spherical(80, Math.PI/2, 0),
+  damping: 0.08,
+  rotating: false,
+  pinching: false,
+  panning: false,
+  lastTouch: null,
+  lastPinchDist: 0,
+  lastPanPos: null,
+  inertiaTheta: 0,
+  inertiaPhi: 0,
+
+  update(){
+    this.dampedSpherical.radius += (this.spherical.radius - this.dampedSpherical.radius) * this.damping;
+    this.dampedSpherical.theta += (this.spherical.theta - this.dampedSpherical.theta) * this.damping;
+    this.dampedSpherical.phi += (this.spherical.phi - this.dampedSpherical.phi) * this.damping;
+    this.dampedSpherical.phi = Math.max(0.1, Math.min(Math.PI - 0.1, this.dampedSpherical.phi));
+    this.dampedSpherical.radius = Math.max(10, Math.min(400, this.dampedSpherical.radius));
+
+    if(!this.rotating){
+      this.spherical.theta += this.inertiaTheta;
+      this.spherical.phi += this.inertiaPhi;
+      this.inertiaTheta *= 0.95;
+      this.inertiaPhi *= 0.95;
+    }
+
+    const p = new THREE.Vector3().setFromSpherical(this.dampedSpherical);
+    camera.position.copy(this.target).add(p);
+    camera.lookAt(this.target);
+  }
+};
+
+// ─── RAYCASTING ────────────────────────────────────────────────────
 const raycaster = new THREE.Raycaster();
+raycaster.params.Points = { threshold: 2 };
 const pointer = new THREE.Vector2();
 
-function createThoughtMesh(thought) {
-  const geometry = new THREE.SphereGeometry(1, 32, 32);
-  const material = new THREE.MeshStandardMaterial({
-    color: 0x1e293b,
-    roughness: 0.6,
-    metalness: 0.15,
-    emissive: 0x60a5fa,
-    emissiveIntensity: 0.08
-  });
-  
-  const mesh = new THREE.Mesh(geometry, material);
-  mesh.position.set(thought.x, thought.y, thought.z);
-  mesh.userData.id = thought.id;
-  mesh.userData.type = 'thought';
-  
-  scene.add(mesh);
-  thoughtMeshes.set(thought.id, mesh);
-  
-  // Runtime data for animation
-  thoughtData.set(thought.id, {
-    floatOffset: Math.random() * Math.PI * 2,
-    basePosition: new THREE.Vector3(thought.x, thought.y, thought.z),
-    velocity: new THREE.Vector3(0, 0, 0),
-    targetEmissive: 0.08
-  });
-  
-  return mesh;
+function raycast(x, y){
+  pointer.x = (x / innerWidth) * 2 - 1;
+  pointer.y = -(y / innerHeight) * 2 + 1;
+  raycaster.setFromCamera(pointer, camera);
+  const meshes = [];
+  meshMap.forEach(e => meshes.push(e.mesh));
+  const hits = raycaster.intersectObjects(meshes);
+  return hits.length > 0 ? hits[0] : null;
 }
 
-function addThought(x, y, z, text = '') {
-  const thought = {
-    id: uid(),
-    x, y, z,
-    text,
-    created: Date.now(),
-    updated: Date.now()
+function screenPos(worldPos){
+  const v = worldPos.clone().project(camera);
+  return {
+    x: (v.x * 0.5 + 0.5) * innerWidth,
+    y: (-v.y * 0.5 + 0.5) * innerHeight
   };
-  
-  state.thoughts.push(thought);
-  createThoughtMesh(thought);
-  updateStats();
-  save();
-  
-  return thought;
 }
 
-function updateThought(id, updates) {
-  const thought = state.thoughts.find(t => t.id === id);
-  if (thought) {
-    Object.assign(thought, updates, { updated: Date.now() });
-    
-    // Update base position if position changed
-    if (updates.x !== undefined || updates.y !== undefined || updates.z !== undefined) {
-      const data = thoughtData.get(id);
-      if (data) {
-        data.basePosition.set(thought.x, thought.y, thought.z);
+function tapWorldPos(x, y, dist){
+  pointer.x = (x / innerWidth) * 2 - 1;
+  pointer.y = -(y / innerHeight) * 2 + 1;
+  raycaster.setFromCamera(pointer, camera);
+  return raycaster.ray.at(dist || orbit.dampedSpherical.radius * 0.5, new THREE.Vector3());
+}
+
+// ─── INTERACTION STATE ─────────────────────────────────────────────
+let interactionState = 'idle'; // idle | dragging | connecting | orbiting | pinching | panning
+let activeNode = null;
+let connectSourceId = null;
+let longPressTimer = null;
+let touchStartTime = 0;
+let touchStartPos = { x:0, y:0 };
+let hasMoved = false;
+const LONG_PRESS_MS = 400;
+const TAP_THRESHOLD = 12;
+const DRAG_PLANE = new THREE.Plane();
+const dragOffset = new THREE.Vector3();
+const intersection = new THREE.Vector3();
+
+const deleteZone = document.getElementById('delete-zone');
+const textOverlay = document.getElementById('text-input-overlay');
+const thoughtInput = document.getElementById('thought-input');
+const searchBar = document.getElementById('search-bar');
+const searchInput = document.getElementById('search-input');
+const dragLine = document.getElementById('drag-line');
+
+// ─── THOUGHT CRUD ──────────────────────────────────────────────────
+function createThought(x, y, z, text=''){
+  const t = { id: uid(), text, x, y, z, color: pickColor(), vx: (Math.random()-0.5)*0.02, vy: (Math.random()-0.5)*0.02, vz: (Math.random()-0.5)*0.02 };
+  S.thoughts.push(t);
+  addThoughtToScene(t);
+  save();
+  return t;
+}
+
+function editThought(id, newText){
+  const t = S.thoughts.find(t => t.id === id);
+  if(!t) return;
+  t.text = newText;
+  const entry = meshMap.get(id);
+  if(entry){
+    nodeGroup.remove(entry.sprite);
+    const sprite = makeTextSprite(newText);
+    const r = baseRadius(t);
+    sprite.position.set(entry.mesh.position.x, entry.mesh.position.y + r + 2.2, entry.mesh.position.z);
+    nodeGroup.add(sprite);
+    entry.sprite = sprite;
+  }
+  save();
+}
+
+function deleteThought(id){
+  S.thoughts = S.thoughts.filter(t => t.id !== id);
+  const connsToRemove = S.connections.filter(c => c.from === id || c.to === id);
+  connsToRemove.forEach(c => {
+    const line = lineMap.get(c.id);
+    if(line) lineGroup.remove(line);
+    lineMap.delete(c.id);
+  });
+  S.connections = S.connections.filter(c => c.from !== id && c.to !== id);
+  const entry = meshMap.get(id);
+  if(entry){
+    nodeGroup.remove(entry.mesh);
+    nodeGroup.remove(entry.sprite);
+    meshMap.delete(id);
+  }
+  updateNodeSizes();
+  save();
+}
+
+function createConnection(fromId, toId){
+  if(fromId === toId) return;
+  if(S.connections.find(c => (c.from===fromId && c.to===toId) || (c.from===toId && c.to===fromId))) return;
+  const c = { id: uid(), from: fromId, to: toId };
+  S.connections.push(c);
+  addConnectionToScene(c);
+  updateNodeSizes();
+  save();
+}
+
+function deleteConnection(id){
+  const line = lineMap.get(id);
+  if(line) lineGroup.remove(line);
+  lineMap.delete(id);
+  S.connections = S.connections.filter(c => c.id !== id);
+  updateNodeSizes();
+  save();
+}
+
+// ─── TEXT INPUT ─────────────────────────────────────────────────────
+let pendingThoughtAction = null; // {type:'new', x,y,z} or {type:'edit', id}
+
+function openInput(action){
+  pendingThoughtAction = action;
+  textOverlay.classList.add('active');
+  if(action.type === 'edit'){
+    const t = S.thoughts.find(t => t.id === action.id);
+    thoughtInput.value = t ? t.text : '';
+  } else {
+    thoughtInput.value = '';
+  }
+  setTimeout(() => thoughtInput.focus(), 50);
+}
+
+function closeInput(){
+  textOverlay.classList.remove('active');
+  thoughtInput.blur();
+  pendingThoughtAction = null;
+}
+
+function submitInput(){
+  const text = thoughtInput.value.trim();
+  if(!text){ closeInput(); return; }
+  if(pendingThoughtAction.type === 'new'){
+    createThought(pendingThoughtAction.x, pendingThoughtAction.y, pendingThoughtAction.z, text);
+  } else if(pendingThoughtAction.type === 'edit'){
+    editThought(pendingThoughtAction.id, text);
+  }
+  closeInput();
+}
+
+thoughtInput.addEventListener('keydown', e => {
+  if(e.key === 'Enter'){ e.preventDefault(); submitInput(); }
+  if(e.key === 'Escape'){ closeInput(); }
+});
+textOverlay.addEventListener('click', e => { if(e.target === textOverlay) closeInput(); });
+
+// ─── SEARCH ─────────────────────────────────────────────────────────
+let searchActive = false;
+document.getElementById('btn-search').addEventListener('click', () => {
+  searchActive = !searchActive;
+  searchBar.classList.toggle('active', searchActive);
+  if(searchActive){ searchInput.value = ''; setTimeout(() => searchInput.focus(), 50); }
+  else { searchInput.blur(); clearHighlights(); }
+});
+
+function clearHighlights(){
+  meshMap.forEach(entry => {
+    entry.mesh.material.emissive = new THREE.Color(0x000000);
+    entry.mesh.material.emissiveIntensity = 0;
+  });
+}
+
+searchInput.addEventListener('input', () => {
+  const q = searchInput.value.toLowerCase().trim();
+  clearHighlights();
+  if(!q) return;
+  S.thoughts.forEach(t => {
+    if(t.text.toLowerCase().includes(q)){
+      const entry = meshMap.get(t.id);
+      if(entry){
+        entry.mesh.material.emissive = new THREE.Color(0x7eb8da);
+        entry.mesh.material.emissiveIntensity = 0.8;
       }
     }
-    
-    save();
+  });
+});
+
+searchInput.addEventListener('keydown', e => {
+  if(e.key === 'Escape'){
+    searchActive = false;
+    searchBar.classList.remove('active');
+    searchInput.blur();
+    clearHighlights();
   }
-}
-
-function removeThought(id) {
-  const mesh = thoughtMeshes.get(id);
-  if (mesh) {
-    scene.remove(mesh);
-    mesh.geometry.dispose();
-    mesh.material.dispose();
-    thoughtMeshes.delete(id);
-    thoughtData.delete(id);
-  }
-  state.thoughts = state.thoughts.filter(t => t.id !== id);
-  state.connections = state.connections.filter(c => c.from !== id && c.to !== id);
-  renderConnections();
-  updateStats();
-  save();
-}
-
-// ════════════════════════════════════════════════════════════════
-// Connection Management
-// ════════════════════════════════════════════════════════════════
-
-const connectionLines = new Map();
-let pendingLine = null;
-
-function addConnection(fromId, toId) {
-  if (fromId === toId) return null;
-  
-  const connection = {
-    id: uid(),
-    from: fromId,
-    to: toId,
-    created: Date.now()
-  };
-  
-  state.connections.push(connection);
-  renderConnections();
-  updateStats();
-  save();
-  
-  return connection;
-}
-
-function getConnectionKey(fromId, toId) {
-  return [fromId, toId].sort().join('-');
-}
-
-function getConnectionDensity(fromId, toId) {
-  const key = getConnectionKey(fromId, toId);
-  return state.connections.filter(c => 
-    getConnectionKey(c.from, c.to) === key
-  ).length;
-}
-
-function renderConnections() {
-  // Clear existing
-  connectionLines.forEach(line => {
-    scene.remove(line);
-    line.geometry.dispose();
-    line.material.dispose();
-  });
-  connectionLines.clear();
-  
-  // Group by pair
-  const pairs = new Map();
-  state.connections.forEach(conn => {
-    const key = getConnectionKey(conn.from, conn.to);
-    if (!pairs.has(key)) {
-      pairs.set(key, { from: conn.from, to: conn.to, count: 0 });
-    }
-    pairs.get(key).count++;
-  });
-  
-  // Create lines
-  pairs.forEach((pair, key) => {
-    const fromMesh = thoughtMeshes.get(pair.from);
-    const toMesh = thoughtMeshes.get(pair.to);
-    if (!fromMesh || !toMesh) return;
-    
-    const line = createConnectionLine(fromMesh, toMesh, pair.count);
-    line.userData.from = pair.from;
-    line.userData.to = pair.to;
-    line.userData.density = pair.count;
-    connectionLines.set(key, line);
-    scene.add(line);
-  });
-}
-
-function createConnectionLine(fromMesh, toMesh, density) {
-  const curve = new THREE.LineCurve3(
-    fromMesh.position.clone(),
-    toMesh.position.clone()
-  );
-  
-  // More points for smoother line
-  const points = curve.getPoints(20);
-  const geometry = new THREE.BufferGeometry().setFromPoints(points);
-  
-  // Density affects visual
-  const opacity = Math.min(0.2 + density * 0.12, 0.7);
-  const emissiveBoost = Math.min(density * 0.1, 0.4);
-  
-  const material = new THREE.LineBasicMaterial({
-    color: new THREE.Color(0x60a5fa).multiplyScalar(0.8 + emissiveBoost),
-    transparent: true,
-    opacity: opacity
-  });
-  
-  return new THREE.Line(geometry, material);
-}
-
-function updateConnectionPositions() {
-  connectionLines.forEach((line) => {
-    const fromMesh = thoughtMeshes.get(line.userData.from);
-    const toMesh = thoughtMeshes.get(line.userData.to);
-    if (!fromMesh || !toMesh) return;
-    
-    const positions = line.geometry.attributes.position.array;
-    const fromPos = fromMesh.position;
-    const toPos = toMesh.position;
-    
-    // Interpolate all points along the line
-    const count = positions.length / 3;
-    for (let i = 0; i < count; i++) {
-      const t = i / (count - 1);
-      positions[i * 3] = fromPos.x + (toPos.x - fromPos.x) * t;
-      positions[i * 3 + 1] = fromPos.y + (toPos.y - fromPos.y) * t;
-      positions[i * 3 + 2] = fromPos.z + (toPos.z - fromPos.z) * t;
-    }
-    line.geometry.attributes.position.needsUpdate = true;
-  });
-}
-
-function createPendingLine() {
-  const geometry = new THREE.BufferGeometry().setFromPoints([
-    new THREE.Vector3(), new THREE.Vector3()
-  ]);
-  const material = new THREE.LineDashedMaterial({
-    color: 0x60a5fa,
-    transparent: true,
-    opacity: 0.6,
-    dashSize: 0.5,
-    gapSize: 0.3
-  });
-  const line = new THREE.Line(geometry, material);
-  line.computeLineDistances();
-  line.visible = false;
-  scene.add(line);
-  return line;
-}
-
-function updatePendingLine(fromPos, toPos) {
-  if (!pendingLine) return;
-  const positions = pendingLine.geometry.attributes.position.array;
-  positions[0] = fromPos.x;
-  positions[1] = fromPos.y;
-  positions[2] = fromPos.z;
-  positions[3] = toPos.x;
-  positions[4] = toPos.y;
-  positions[5] = toPos.z;
-  pendingLine.geometry.attributes.position.needsUpdate = true;
-  pendingLine.computeLineDistances();
-}
-
-// ════════════════════════════════════════════════════════════════
-// Persistence
-// ════════════════════════════════════════════════════════════════
-
-let saveTimeout = null;
-
-function save() {
-  clearTimeout(saveTimeout);
-  syncDot.className = 'saving';
-  
-  saveTimeout = setTimeout(() => {
-    state.camera = {
-      x: camera.position.x,
-      y: camera.position.y,
-      z: camera.position.z
-    };
-    
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-      syncDot.className = 'saved';
-      setTimeout(() => syncDot.className = '', 1500);
-    } catch (e) {
-      console.warn('Save failed:', e);
-    }
-  }, 400);
-}
-
-function load() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const saved = JSON.parse(raw);
-      state.thoughts = saved.thoughts || [];
-      state.connections = saved.connections || [];
-      state.camera = saved.camera || { x: 0, y: 0, z: 30 };
-      state.lastPromptDate = saved.lastPromptDate || null;
-      
-      camera.position.set(state.camera.x, state.camera.y, state.camera.z);
-      
-      state.thoughts.forEach(t => createThoughtMesh(t));
-      renderConnections();
-      updateStats();
-    }
-  } catch (e) {
-    console.warn('Load failed:', e);
-  }
-}
-
-// ════════════════════════════════════════════════════════════════
-// Animation - Life
-// ════════════════════════════════════════════════════════════════
-
-let time = 0;
-
-function animateThoughts(delta) {
-  time += delta;
-  
-  thoughtMeshes.forEach((mesh, id) => {
-    const data = thoughtData.get(id);
-    if (!data) return;
-    
-    // Gentle floating
-    const floatX = Math.sin(time * FLOAT_SPEED + data.floatOffset) * FLOAT_INTENSITY;
-    const floatY = Math.cos(time * FLOAT_SPEED * 1.3 + data.floatOffset) * FLOAT_INTENSITY;
-    const floatZ = Math.sin(time * FLOAT_SPEED * 0.7 + data.floatOffset) * FLOAT_INTENSITY * 0.5;
-    
-    // Apply momentum if any
-    if (data.velocity.lengthSq() > MOMENTUM_MIN * MOMENTUM_MIN) {
-      data.basePosition.add(data.velocity);
-      data.velocity.multiplyScalar(MOMENTUM_FRICTION);
-      
-      // Update state
-      const thought = state.thoughts.find(t => t.id === id);
-      if (thought) {
-        thought.x = data.basePosition.x;
-        thought.y = data.basePosition.y;
-        thought.z = data.basePosition.z;
+  if(e.key === 'Enter'){
+    const q = searchInput.value.toLowerCase().trim();
+    if(!q) return;
+    const found = S.thoughts.find(t => t.text.toLowerCase().includes(q));
+    if(found){
+      const entry = meshMap.get(found.id);
+      if(entry){
+        orbit.target.copy(entry.mesh.position);
+        orbit.spherical.radius = 40;
       }
     }
-    
-    // Final position = base + float
-    mesh.position.set(
-      data.basePosition.x + floatX,
-      data.basePosition.y + floatY,
-      data.basePosition.z + floatZ
-    );
-    
-    // Smooth emissive transition
-    const currentEmissive = mesh.material.emissiveIntensity;
-    mesh.material.emissiveIntensity += (data.targetEmissive - currentEmissive) * 0.1;
-  });
-  
-  // Update connection lines to follow thoughts
-  updateConnectionPositions();
-}
+  }
+});
 
-// ════════════════════════════════════════════════════════════════
-// Interaction
-// ════════════════════════════════════════════════════════════════
-
-let isDragging = false;
-let draggedMesh = null;
-let dragPlane = new THREE.Plane();
-let dragOffset = new THREE.Vector3();
-let pointerDownTime = 0;
-let pointerDownPos = { x: 0, y: 0 };
-let pointerMoved = false;
-let editingThought = null;
-let lastDragPos = new THREE.Vector3();
-let lastDragTime = 0;
-
-// Connection state
-let isConnecting = false;
-let connectFromMesh = null;
-let holdTimer = null;
-
-function getIntersects(event) {
-  const rect = canvas.getBoundingClientRect();
-  const x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-  const y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-  
-  pointer.set(x, y);
-  raycaster.setFromCamera(pointer, camera);
-  
-  const meshes = Array.from(thoughtMeshes.values());
-  return raycaster.intersectObjects(meshes);
-}
-
-function get3DPosition(event, z = 0) {
-  const rect = canvas.getBoundingClientRect();
-  const x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-  const y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-  
-  pointer.set(x, y);
-  raycaster.setFromCamera(pointer, camera);
-  
-  const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), -z);
-  const target = new THREE.Vector3();
-  raycaster.ray.intersectPlane(plane, target);
-  
-  return target;
-}
-
-function onPointerDown(event) {
-  if (event.target !== canvas) return;
-  
-  // Dismiss prompt if showing
-  if (promptEl.classList.contains('show')) {
-    dismissPrompt();
+// ─── RECENTER ───────────────────────────────────────────────────────
+document.getElementById('btn-recenter').addEventListener('click', () => {
+  if(S.thoughts.length === 0){
+    orbit.target.set(0,0,0);
+    orbit.spherical.radius = 80;
     return;
   }
-  
-  pointerDownTime = Date.now();
-  pointerDownPos = { x: event.clientX, y: event.clientY };
-  pointerMoved = false;
-  
-  const intersects = getIntersects(event);
-  
-  if (intersects.length > 0) {
-    const mesh = intersects[0].object;
-    
-    controls.enabled = false;
-    isDragging = true;
-    draggedMesh = mesh;
-    
-    // Drag plane facing camera
-    const cameraDir = new THREE.Vector3();
-    camera.getWorldDirection(cameraDir);
-    dragPlane.setFromNormalAndCoplanarPoint(cameraDir.negate(), mesh.position);
-    
-    // Calculate offset
-    const intersectPoint = new THREE.Vector3();
-    raycaster.ray.intersectPlane(dragPlane, intersectPoint);
-    dragOffset.subVectors(mesh.position, intersectPoint);
-    
-    // For momentum calculation
-    lastDragPos.copy(mesh.position);
-    lastDragTime = Date.now();
-    
-    // Visual feedback
-    const data = thoughtData.get(mesh.userData.id);
-    if (data) data.targetEmissive = 0.3;
-    
-    // Hold timer for connection mode
-    holdTimer = setTimeout(() => {
-      if (!pointerMoved && draggedMesh) {
-        startConnecting(draggedMesh);
-      }
-    }, HOLD_MS);
-  }
-}
+  const center = new THREE.Vector3();
+  S.thoughts.forEach(t => center.add(new THREE.Vector3(t.x, t.y, t.z)));
+  center.divideScalar(S.thoughts.length);
+  orbit.target.copy(center);
+  orbit.spherical.radius = 80;
+});
 
-function startConnecting(mesh) {
-  isConnecting = true;
-  connectFromMesh = mesh;
-  isDragging = false;
-  
-  // Visual feedback
-  const data = thoughtData.get(mesh.userData.id);
-  if (data) data.targetEmissive = 0.5;
-  mesh.material.emissive.setHex(0x60a5fa);
-  
-  // Show pending line
-  if (!pendingLine) pendingLine = createPendingLine();
-  pendingLine.visible = true;
-  updatePendingLine(mesh.position, mesh.position);
-  
-  if (navigator.vibrate) navigator.vibrate(10);
-}
+// ─── TOUCH HANDLING ─────────────────────────────────────────────────
+function getTouchXY(e){ return e.touches ? { x: e.touches[0].clientX, y: e.touches[0].clientY } : { x: e.clientX, y: e.clientY }; }
+function dist2D(a, b){ return Math.hypot(a.x - b.x, a.y - b.y); }
 
-function endConnecting(targetMesh = null) {
-  if (connectFromMesh && targetMesh && targetMesh !== connectFromMesh) {
-    addConnection(connectFromMesh.userData.id, targetMesh.userData.id);
-    if (navigator.vibrate) navigator.vibrate(5);
-  }
-  
-  // Reset source
-  if (connectFromMesh) {
-    const data = thoughtData.get(connectFromMesh.userData.id);
-    if (data) data.targetEmissive = 0.08;
-    connectFromMesh.material.emissive.setHex(0x60a5fa);
-  }
-  
-  // Hide pending line
-  if (pendingLine) pendingLine.visible = false;
-  
-  // Reset all hover states
-  thoughtMeshes.forEach((mesh, id) => {
-    const data = thoughtData.get(id);
-    if (data) data.targetEmissive = 0.08;
-    mesh.material.emissive.setHex(0x60a5fa);
-  });
-  
-  isConnecting = false;
-  connectFromMesh = null;
-}
+function pinchDist(e){ return Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); }
+function pinchCenter(e){ return { x: (e.touches[0].clientX + e.touches[1].clientX)/2, y: (e.touches[0].clientY + e.touches[1].clientY)/2 }; }
 
-function onPointerMove(event) {
-  const dx = event.clientX - pointerDownPos.x;
-  const dy = event.clientY - pointerDownPos.y;
-  if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
-    pointerMoved = true;
-    clearTimeout(holdTimer);
+const canvas = renderer.domElement;
+
+canvas.addEventListener('touchstart', onPointerDown, { passive: false });
+canvas.addEventListener('touchmove', onPointerMove, { passive: false });
+canvas.addEventListener('touchend', onPointerUp, { passive: false });
+canvas.addEventListener('touchcancel', onPointerUp, { passive: false });
+
+// Mouse fallback
+canvas.addEventListener('mousedown', onPointerDown);
+canvas.addEventListener('mousemove', onPointerMove);
+canvas.addEventListener('mouseup', onPointerUp);
+canvas.addEventListener('wheel', e => {
+  orbit.spherical.radius += e.deltaY * 0.05;
+  e.preventDefault();
+}, { passive: false });
+
+function onPointerDown(e){
+  e.preventDefault();
+  if(textOverlay.classList.contains('active') || searchActive) return;
+
+  const isTouch = !!e.touches;
+
+  // Two-finger: pinch/pan
+  if(isTouch && e.touches.length === 2){
+    interactionState = 'pinching';
+    orbit.lastPinchDist = pinchDist(e);
+    orbit.lastPanPos = pinchCenter(e);
+    clearLongPress();
+    return;
   }
-  
-  if (isConnecting && connectFromMesh) {
-    const pos = get3DPosition(event, connectFromMesh.position.z);
-    updatePendingLine(connectFromMesh.position, pos);
-    
-    // Highlight potential target
-    const intersects = getIntersects(event);
-    thoughtMeshes.forEach((mesh, id) => {
-      if (mesh !== connectFromMesh) {
-        const data = thoughtData.get(id);
-        if (data) data.targetEmissive = 0.08;
+
+  const pos = getTouchXY(e);
+  touchStartPos = { x: pos.x, y: pos.y };
+  touchStartTime = Date.now();
+  hasMoved = false;
+
+  const hit = raycast(pos.x, pos.y);
+
+  if(hit){
+    activeNode = hit.object.userData.id;
+    // Start long-press timer for connecting
+    longPressTimer = setTimeout(() => {
+      if(!hasMoved){
+        interactionState = 'connecting';
+        connectSourceId = activeNode;
+        // Haptic feedback if available
+        if(navigator.vibrate) navigator.vibrate(30);
       }
-    });
-    
-    if (intersects.length > 0 && intersects[0].object !== connectFromMesh) {
-      const target = intersects[0].object;
-      const data = thoughtData.get(target.userData.id);
-      if (data) data.targetEmissive = 0.4;
-    }
-  } else if (isDragging && draggedMesh) {
-    const rect = canvas.getBoundingClientRect();
-    const x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-    const y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-    
-    pointer.set(x, y);
-    raycaster.setFromCamera(pointer, camera);
-    
-    const intersectPoint = new THREE.Vector3();
-    if (raycaster.ray.intersectPlane(dragPlane, intersectPoint)) {
-      const newPos = intersectPoint.add(dragOffset);
-      
-      // Update base position directly
-      const data = thoughtData.get(draggedMesh.userData.id);
-      if (data) {
-        data.basePosition.copy(newPos);
-        data.velocity.set(0, 0, 0); // Reset velocity while dragging
-      }
-      
-      // For momentum: track position over time
-      const now = Date.now();
-      const dt = now - lastDragTime;
-      if (dt > 0) {
-        const vel = new THREE.Vector3().subVectors(newPos, lastDragPos).divideScalar(dt * 0.05);
-        lastDragPos.copy(newPos);
-        lastDragTime = now;
-        if (data) data.velocity.copy(vel);
-      }
-      
-      // Update state
-      const thought = state.thoughts.find(t => t.id === draggedMesh.userData.id);
-      if (thought) {
-        thought.x = newPos.x;
-        thought.y = newPos.y;
-        thought.z = newPos.z;
-      }
-    }
+    }, LONG_PRESS_MS);
   } else {
-    // Hover effect
-    const intersects = getIntersects(event);
-    thoughtMeshes.forEach((mesh, id) => {
-      const data = thoughtData.get(id);
-      if (data && mesh !== draggedMesh) {
-        data.targetEmissive = 0.08;
+    activeNode = null;
+    interactionState = 'orbiting';
+    orbit.rotating = true;
+    orbit.lastTouch = { x: pos.x, y: pos.y };
+    orbit.inertiaTheta = 0;
+    orbit.inertiaPhi = 0;
+  }
+}
+
+function onPointerMove(e){
+  e.preventDefault();
+  const isTouch = !!e.touches;
+
+  // Pinch zoom + pan
+  if(interactionState === 'pinching' && isTouch && e.touches.length === 2){
+    const d = pinchDist(e);
+    const ratio = orbit.lastPinchDist / d;
+    orbit.spherical.radius *= ratio;
+    orbit.lastPinchDist = d;
+
+    const center = pinchCenter(e);
+    if(orbit.lastPanPos){
+      const dx = center.x - orbit.lastPanPos.x;
+      const dy = center.y - orbit.lastPanPos.y;
+      const panScale = orbit.dampedSpherical.radius * 0.002;
+      const right = new THREE.Vector3().setFromMatrixColumn(camera.matrix, 0);
+      const up = new THREE.Vector3().setFromMatrixColumn(camera.matrix, 1);
+      orbit.target.addScaledVector(right, -dx * panScale);
+      orbit.target.addScaledVector(up, dy * panScale);
+    }
+    orbit.lastPanPos = center;
+    return;
+  }
+
+  const pos = isTouch && e.touches.length > 0 ? getTouchXY(e) : (e.touches ? null : { x: e.clientX, y: e.clientY });
+  if(!pos) return;
+
+  const moved = dist2D(pos, touchStartPos);
+  if(moved > TAP_THRESHOLD) hasMoved = true;
+
+  // Dragging a node
+  if(activeNode !== null && interactionState !== 'connecting' && interactionState !== 'orbiting' && hasMoved){
+    clearLongPress();
+    interactionState = 'dragging';
+    deleteZone.classList.add('active');
+
+    const entry = meshMap.get(activeNode);
+    if(entry){
+      // Project drag onto a camera-facing plane through the node
+      DRAG_PLANE.setFromNormalAndCoplanarPoint(
+        camera.getWorldDirection(new THREE.Vector3()).negate(),
+        entry.mesh.position
+      );
+      pointer.x = (pos.x / innerWidth) * 2 - 1;
+      pointer.y = -(pos.y / innerHeight) * 2 + 1;
+      raycaster.setFromCamera(pointer, camera);
+      if(raycaster.ray.intersectPlane(DRAG_PLANE, intersection)){
+        entry.mesh.position.copy(intersection);
+        entry.data.x = intersection.x;
+        entry.data.y = intersection.y;
+        entry.data.z = intersection.z;
+        // Kill drift while dragging
+        entry.data.vx = 0;
+        entry.data.vy = 0;
+        entry.data.vz = 0;
       }
-    });
-    if (intersects.length > 0 && !isDragging) {
-      const data = thoughtData.get(intersects[0].object.userData.id);
-      if (data) data.targetEmissive = 0.25;
     }
+
+    // Check delete zone
+    const inDeleteZone = pos.y > innerHeight - 100;
+    deleteZone.classList.toggle('hot', inDeleteZone);
+  }
+
+  // Connecting
+  if(interactionState === 'connecting'){
+    const sourceEntry = meshMap.get(connectSourceId);
+    if(sourceEntry){
+      const sp = screenPos(sourceEntry.mesh.position);
+      dragLine.style.display = 'block';
+      dragLine.setAttribute('x1', sp.x);
+      dragLine.setAttribute('y1', sp.y);
+      dragLine.setAttribute('x2', pos.x);
+      dragLine.setAttribute('y2', pos.y);
+    }
+  }
+
+  // Orbiting
+  if(interactionState === 'orbiting' && orbit.lastTouch){
+    const dx = pos.x - orbit.lastTouch.x;
+    const dy = pos.y - orbit.lastTouch.y;
+    const speed = 0.004;
+    orbit.spherical.theta -= dx * speed;
+    orbit.spherical.phi -= dy * speed;
+    orbit.inertiaTheta = -dx * speed * 0.3;
+    orbit.inertiaPhi = -dy * speed * 0.3;
+    orbit.lastTouch = { x: pos.x, y: pos.y };
   }
 }
 
-function onPointerUp(event) {
-  clearTimeout(holdTimer);
-  
-  const clickDuration = Date.now() - pointerDownTime;
-  const wasQuickTap = clickDuration < 200 && !pointerMoved;
-  
-  if (isConnecting) {
-    const intersects = getIntersects(event);
-    const targetMesh = intersects.length > 0 ? intersects[0].object : null;
-    endConnecting(targetMesh);
-    controls.enabled = true;
-  } else if (isDragging && draggedMesh) {
-    const data = thoughtData.get(draggedMesh.userData.id);
-    if (data) data.targetEmissive = 0.08;
-    
-    if (wasQuickTap) {
-      openEditor(draggedMesh);
-      if (data) data.velocity.set(0, 0, 0);
+function onPointerUp(e){
+  e.preventDefault();
+  clearLongPress();
+  const isTouch = !!e.changedTouches;
+  const pos = isTouch ? { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY } : { x: e.clientX, y: e.clientY };
+
+  // Finish connecting
+  if(interactionState === 'connecting'){
+    dragLine.style.display = 'none';
+    const hit = raycast(pos.x, pos.y);
+    if(hit && hit.object.userData.id !== connectSourceId){
+      createConnection(connectSourceId, hit.object.userData.id);
+      if(navigator.vibrate) navigator.vibrate(15);
+    }
+    connectSourceId = null;
+    interactionState = 'idle';
+    activeNode = null;
+    return;
+  }
+
+  // Finish dragging
+  if(interactionState === 'dragging'){
+    const inDeleteZone = pos.y > innerHeight - 100;
+    if(inDeleteZone && activeNode !== null){
+      deleteThought(activeNode);
+      if(navigator.vibrate) navigator.vibrate([20, 50, 20]);
     } else {
-      // Let momentum continue, save after it settles
-      setTimeout(save, 500);
-    }
-    
-    isDragging = false;
-    draggedMesh = null;
-    controls.enabled = true;
-  } else if (wasQuickTap && event.target === canvas) {
-    const pos = get3DPosition(event);
-    const thought = addThought(pos.x, pos.y, pos.z);
-    const mesh = thoughtMeshes.get(thought.id);
-    openEditor(mesh);
-  }
-}
-
-// ════════════════════════════════════════════════════════════════
-// Text Editor
-// ════════════════════════════════════════════════════════════════
-
-function openEditor(mesh) {
-  editingThought = state.thoughts.find(t => t.id === mesh.userData.id);
-  if (!editingThought) return;
-  
-  const pos = mesh.position.clone().project(camera);
-  const x = (pos.x * 0.5 + 0.5) * window.innerWidth;
-  const y = (-pos.y * 0.5 + 0.5) * window.innerHeight;
-  
-  editor.style.left = x + 'px';
-  editor.style.top = y + 'px';
-  editor.style.display = 'block';
-  editor.value = editingThought.text;
-  editor.focus();
-  autoResizeEditor();
-  
-  const data = thoughtData.get(mesh.userData.id);
-  if (data) data.targetEmissive = 0.4;
-}
-
-function closeEditor(shouldSave = true) {
-  if (editingThought && shouldSave) {
-    const newText = editor.value.trim();
-    
-    if (newText === '') {
-      removeThought(editingThought.id);
-    } else {
-      updateThought(editingThought.id, { text: newText });
-    }
-  }
-  
-  if (editingThought) {
-    const data = thoughtData.get(editingThought.id);
-    if (data) data.targetEmissive = 0.08;
-  }
-  
-  editor.style.display = 'none';
-  editingThought = null;
-}
-
-function autoResizeEditor() {
-  editor.style.height = 'auto';
-  editor.style.height = Math.min(editor.scrollHeight, 200) + 'px';
-}
-
-editor.addEventListener('input', autoResizeEditor);
-editor.addEventListener('blur', () => closeEditor(true));
-editor.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') closeEditor(false);
-  else if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    closeEditor(true);
-  }
-});
-
-// ════════════════════════════════════════════════════════════════
-// Daily Prompt
-// ════════════════════════════════════════════════════════════════
-
-function showPrompt() {
-  const today = new Date().toDateString();
-  
-  // Show prompt if it's a new day or no thoughts yet
-  if (state.lastPromptDate !== today || state.thoughts.length === 0) {
-    const prompt = PROMPTS[Math.floor(Math.random() * PROMPTS.length)];
-    promptText.textContent = prompt;
-    promptEl.classList.add('show');
-    state.lastPromptDate = today;
-    save();
-  }
-}
-
-function dismissPrompt() {
-  promptEl.classList.remove('show');
-}
-
-function showNewPrompt() {
-  const prompt = PROMPTS[Math.floor(Math.random() * PROMPTS.length)];
-  promptText.textContent = prompt;
-  promptEl.classList.add('show');
-}
-
-// ════════════════════════════════════════════════════════════════
-// Stats
-// ════════════════════════════════════════════════════════════════
-
-function updateStats() {
-  const tc = state.thoughts.length;
-  const cc = state.connections.length;
-  statThoughts.textContent = `${tc} thought${tc !== 1 ? 's' : ''}`;
-  statConnections.textContent = `${cc} connection${cc !== 1 ? 's' : ''}`;
-}
-
-// ════════════════════════════════════════════════════════════════
-// Menu
-// ════════════════════════════════════════════════════════════════
-
-let menuOpen = false;
-
-menuBtn.addEventListener('click', (e) => {
-  e.stopPropagation();
-  menuOpen = !menuOpen;
-  menu.classList.toggle('open', menuOpen);
-});
-
-document.addEventListener('click', () => {
-  if (menuOpen) {
-    menuOpen = false;
-    menu.classList.remove('open');
-  }
-});
-
-document.getElementById('menu-export').addEventListener('click', () => {
-  const data = JSON.stringify(state, null, 2);
-  const blob = new Blob([data], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `atem-${new Date().toISOString().slice(0,10)}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
-  showToast('Exported');
-});
-
-document.getElementById('menu-import').addEventListener('click', () => {
-  importInput.click();
-});
-
-importInput.addEventListener('change', (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-  
-  const reader = new FileReader();
-  reader.onload = (ev) => {
-    try {
-      const imported = JSON.parse(ev.target.result);
-      
-      // Clear existing
-      thoughtMeshes.forEach(mesh => {
-        scene.remove(mesh);
-        mesh.geometry.dispose();
-        mesh.material.dispose();
-      });
-      thoughtMeshes.clear();
-      thoughtData.clear();
-      connectionLines.forEach(line => {
-        scene.remove(line);
-        line.geometry.dispose();
-        line.material.dispose();
-      });
-      connectionLines.clear();
-      
-      // Load imported
-      state.thoughts = imported.thoughts || [];
-      state.connections = imported.connections || [];
-      state.thoughts.forEach(t => createThoughtMesh(t));
-      renderConnections();
-      updateStats();
       save();
-      
-      showToast('Imported');
-    } catch (err) {
-      showToast('Invalid file');
     }
-  };
-  reader.readAsText(file);
-  e.target.value = '';
-});
-
-document.getElementById('menu-reset-view').addEventListener('click', () => {
-  camera.position.set(0, 0, 30);
-  controls.target.set(0, 0, 0);
-  save();
-  showToast('View reset');
-});
-
-document.getElementById('menu-new-prompt').addEventListener('click', () => {
-  showNewPrompt();
-});
-
-document.getElementById('menu-clear').addEventListener('click', () => {
-  if (confirm('Clear all thoughts? This cannot be undone.')) {
-    thoughtMeshes.forEach(mesh => {
-      scene.remove(mesh);
-      mesh.geometry.dispose();
-      mesh.material.dispose();
-    });
-    thoughtMeshes.clear();
-    thoughtData.clear();
-    connectionLines.forEach(line => {
-      scene.remove(line);
-      line.geometry.dispose();
-      line.material.dispose();
-    });
-    connectionLines.clear();
-    
-    state.thoughts = [];
-    state.connections = [];
-    updateStats();
-    save();
-    showToast('Cleared');
+    deleteZone.classList.remove('active', 'hot');
+    interactionState = 'idle';
+    activeNode = null;
+    return;
   }
-});
 
-// ════════════════════════════════════════════════════════════════
-// Toast
-// ════════════════════════════════════════════════════════════════
+  // Handle pinch end
+  if(interactionState === 'pinching'){
+    if(isTouch && e.touches && e.touches.length < 2){
+      interactionState = 'idle';
+    }
+    return;
+  }
 
-function showToast(msg) {
-  toast.textContent = msg;
-  toast.classList.add('show');
-  setTimeout(() => toast.classList.remove('show'), 2000);
+  orbit.rotating = false;
+
+  // Tap on node = edit
+  if(!hasMoved && activeNode !== null){
+    const tapDuration = Date.now() - touchStartTime;
+    if(tapDuration < LONG_PRESS_MS){
+      openInput({ type: 'edit', id: activeNode });
+    }
+    activeNode = null;
+    interactionState = 'idle';
+    return;
+  }
+
+  // Tap on empty space = new thought
+  if(!hasMoved && activeNode === null){
+    const tapDuration = Date.now() - touchStartTime;
+    if(tapDuration < 300){
+      const worldPos = tapWorldPos(pos.x, pos.y);
+      openInput({ type: 'new', x: worldPos.x, y: worldPos.y, z: worldPos.z });
+    }
+  }
+
+  interactionState = 'idle';
+  activeNode = null;
 }
 
-// ════════════════════════════════════════════════════════════════
-// Event Listeners
-// ════════════════════════════════════════════════════════════════
+function clearLongPress(){ if(longPressTimer){ clearTimeout(longPressTimer); longPressTimer = null; } }
 
-canvas.addEventListener('pointerdown', onPointerDown);
-canvas.addEventListener('pointermove', onPointerMove);
-canvas.addEventListener('pointerup', onPointerUp);
-canvas.addEventListener('pointercancel', onPointerUp);
-canvas.addEventListener('contextmenu', e => e.preventDefault());
+// ─── SUBTLE DRIFT PHYSICS ──────────────────────────────────────────
+const DRIFT_SPEED = 0.003;
+const DRIFT_DAMPING = 0.998;
 
-window.addEventListener('resize', () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-});
-
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') {
-    if (editingThought) closeEditor(false);
-    else if (promptEl.classList.contains('show')) dismissPrompt();
-  }
-});
-
-// ════════════════════════════════════════════════════════════════
-// Utils
-// ════════════════════════════════════════════════════════════════
-
-function uid() {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+function applyDrift(dt){
+  if(interactionState === 'dragging') return;
+  S.thoughts.forEach(t => {
+    if(interactionState === 'dragging' && activeNode === t.id) return;
+    // Gentle random force
+    t.vx += (Math.random()-0.5) * DRIFT_SPEED;
+    t.vy += (Math.random()-0.5) * DRIFT_SPEED;
+    t.vz += (Math.random()-0.5) * DRIFT_SPEED;
+    // Damping
+    t.vx *= DRIFT_DAMPING;
+    t.vy *= DRIFT_DAMPING;
+    t.vz *= DRIFT_DAMPING;
+    // Clamp speed
+    const speed = Math.sqrt(t.vx*t.vx + t.vy*t.vy + t.vz*t.vz);
+    if(speed > 0.08){
+      const s = 0.08/speed;
+      t.vx *= s; t.vy *= s; t.vz *= s;
+    }
+    t.x += t.vx;
+    t.y += t.vy;
+    t.z += t.vz;
+    const entry = meshMap.get(t.id);
+    if(entry){
+      entry.mesh.position.set(t.x, t.y, t.z);
+    }
+  });
 }
 
-// ════════════════════════════════════════════════════════════════
-// Render Loop
-// ════════════════════════════════════════════════════════════════
+// ─── GENTLE BREATHING ANIMATION FOR NODES ──────────────────────────
+function breathe(time){
+  meshMap.forEach((entry, id) => {
+    const r = baseRadius(entry.data);
+    const pulse = 1 + Math.sin(time * 0.001 + id * 1.7) * 0.03;
+    const s = r * pulse;
+    entry.mesh.scale.set(s, s, s);
+  });
+}
 
-let lastTime = performance.now();
-
-function animate() {
+// ─── RENDER LOOP ────────────────────────────────────────────────────
+let lastTime = 0;
+function animate(time){
   requestAnimationFrame(animate);
-  
-  const now = performance.now();
-  const delta = now - lastTime;
-  lastTime = now;
-  
-  controls.update();
-  animateThoughts(delta);
+  const dt = Math.min(time - lastTime, 33);
+  lastTime = time;
+
+  applyDrift(dt);
+  breathe(time);
+  updateSpritePositions();
+  updateLines();
+  orbit.update();
+  pt.position.copy(camera.position);
+
   renderer.render(scene, camera);
 }
 
-// ════════════════════════════════════════════════════════════════
-// Init
-// ════════════════════════════════════════════════════════════════
+// ─── RESIZE ─────────────────────────────────────────────────────────
+window.addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
 
+// ─── INIT ───────────────────────────────────────────────────────────
 load();
-pendingLine = createPendingLine();
-animate();
+rebuildScene();
+animate(0);
 
-// Show prompt after a moment
-setTimeout(() => {
-  if (state.thoughts.length === 0) {
-    showPrompt();
-  }
-}, 500);
+// Auto-save periodically (drift changes positions)
+setInterval(save, 5000);
 
 // Register service worker
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js').catch(() => {});
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('./sw.js').catch(()=>{});
 }
-
-console.log('atem 3d - v0.3 alive');
 </script>
 </body>
 </html>
