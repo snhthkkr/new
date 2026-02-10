@@ -16,7 +16,7 @@
 html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;color:#fff;position:fixed;touch-action:none}
 #c{width:100%;height:100%;display:block}
 
-/* Editor overlay */
+/* ─── Editor overlay (tap-to-edit) ─── */
 #editor{
   position:fixed;display:none;z-index:100;
   left:50%;top:50%;transform:translate(-50%,-50%);
@@ -25,8 +25,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:-ap
   border:1px solid rgba(255,255,255,0.12);
   border-radius:16px;
   padding:16px;
-  backdrop-filter:blur(20px);
-  -webkit-backdrop-filter:blur(20px);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
 }
 #editor.open{display:block}
 #editor textarea{
@@ -37,6 +36,34 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:-ap
   -webkit-user-select:text;user-select:text;
 }
 #editor textarea::placeholder{color:rgba(255,255,255,0.25)}
+
+/* folder picker inside editor */
+#ed-folder-row{
+  display:flex;align-items:center;gap:6px;
+  margin-top:10px;padding-top:10px;
+  border-top:1px solid rgba(255,255,255,0.06);
+  flex-wrap:wrap;
+}
+#ed-folder-row .folder-chip{
+  padding:4px 10px;border-radius:20px;font-size:12px;
+  background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.5);
+  border:1px solid rgba(255,255,255,0.08);cursor:pointer;
+  white-space:nowrap;
+}
+#ed-folder-row .folder-chip.active{
+  background:rgba(110,168,254,0.2);color:rgba(110,168,254,0.9);
+  border-color:rgba(110,168,254,0.3);
+}
+#ed-folder-row .folder-chip.add-new{
+  color:rgba(255,255,255,0.3);border-style:dashed;
+}
+#ed-folder-input{
+  background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,0.2);
+  color:#fff;font-size:12px;padding:4px 2px;outline:none;width:80px;
+  font-family:inherit;display:none;
+  -webkit-user-select:text;user-select:text;
+}
+
 #editor-actions{
   display:flex;justify-content:flex-end;gap:8px;
   margin-top:12px;padding-top:12px;
@@ -52,18 +79,95 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:-ap
 #editor-actions .save{color:#fff;background:rgba(255,255,255,0.15)}
 #del-btn{color:rgba(255,100,100,0.8)}
 
-/* Stats */
-#stats{
-  position:fixed;bottom:max(16px,env(safe-area-inset-bottom,0px));
+/* ─── Zero button (feature 1) ─── */
+#zero-btn{
+  position:fixed;
+  bottom:max(24px,calc(env(safe-area-inset-bottom,0px) + 12px));
   left:50%;transform:translateX(-50%);
-  font-size:11px;color:rgba(255,255,255,0.2);
-  letter-spacing:0.05em;pointer-events:none;
-  white-space:nowrap;
+  width:44px;height:44px;border-radius:50%;
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.08);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;z-index:80;
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  transition:background 0.2s;
+}
+#zero-btn:active{background:rgba(255,255,255,0.1)}
+#zero-btn svg{width:18px;height:18px;opacity:0.3}
+/* subtle pulse animation */
+@keyframes zero-pulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(110,168,254,0)}
+  50%{box-shadow:0 0 0 6px rgba(110,168,254,0.06)}
+}
+#zero-btn{animation:zero-pulse 4s ease-in-out infinite}
+
+/* ─── Zero capture overlay (feature 1) ─── */
+#zero-overlay{
+  position:fixed;inset:0;z-index:150;display:none;
+  background:rgba(0,0,0,0.85);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  flex-direction:column;align-items:center;justify-content:center;
+  padding:24px;
+}
+#zero-overlay.open{display:flex}
+#zero-overlay textarea{
+  width:100%;max-width:480px;min-height:120px;max-height:50vh;
+  background:transparent;border:none;outline:none;
+  color:#fff;font-size:20px;line-height:1.6;
+  font-family:inherit;resize:none;text-align:center;
+  -webkit-user-select:text;user-select:text;
+}
+#zero-overlay textarea::placeholder{color:rgba(255,255,255,0.15)}
+#zero-actions{
+  display:flex;gap:12px;margin-top:24px;
+}
+#zero-actions button{
+  background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);
+  color:rgba(255,255,255,0.7);font-size:14px;
+  padding:8px 20px;border-radius:10px;cursor:pointer;
+  font-family:inherit;
+}
+#zero-actions button:active{background:rgba(255,255,255,0.15)}
+#zero-actions .save{color:#fff;background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.15)}
+
+/* ─── Folder filter bar (feature 2) ─── */
+#folder-bar{
+  position:fixed;
+  top:max(14px,env(safe-area-inset-top,0px));
+  left:50%;transform:translateX(-50%);
+  display:flex;gap:6px;z-index:85;
+  max-width:calc(100vw - 100px);
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+  padding:2px 4px;
+}
+#folder-bar::-webkit-scrollbar{display:none}
+#folder-bar .ftab{
+  padding:5px 12px;border-radius:20px;font-size:12px;
+  background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.3);
+  border:1px solid rgba(255,255,255,0.06);cursor:pointer;
+  white-space:nowrap;flex-shrink:0;
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  transition:all 0.2s;
+}
+#folder-bar .ftab:active{background:rgba(255,255,255,0.08)}
+#folder-bar .ftab.active{
+  background:rgba(110,168,254,0.15);color:rgba(110,168,254,0.9);
+  border-color:rgba(110,168,254,0.25);
 }
 
-/* Menu pill */
+/* ─── Stats ─── */
+#stats{
+  position:fixed;bottom:max(72px,calc(env(safe-area-inset-bottom,0px) + 60px));
+  left:50%;transform:translateX(-50%);
+  font-size:11px;color:rgba(255,255,255,0.15);
+  letter-spacing:0.05em;pointer-events:none;white-space:nowrap;
+}
+
+/* ─── Menu pill ─── */
 #menu-pill{
-  position:fixed;top:max(16px,env(safe-area-inset-top,0px));right:16px;
+  position:fixed;top:max(12px,env(safe-area-inset-top,0px));right:16px;
   width:36px;height:36px;border-radius:50%;
   background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);
   display:flex;align-items:center;justify-content:center;
@@ -73,25 +177,32 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:-ap
 #menu-pill:active{background:rgba(255,255,255,0.12)}
 #menu-pill svg{width:16px;height:16px;opacity:0.4}
 
-/* Menu dropdown */
+/* ─── Menu dropdown ─── */
 #menu{
-  position:fixed;top:max(60px,calc(env(safe-area-inset-top,0px)+52px));right:16px;
+  position:fixed;top:max(56px,calc(env(safe-area-inset-top,0px)+48px));right:16px;
   background:rgba(10,10,15,0.95);
   border:1px solid rgba(255,255,255,0.1);
   border-radius:14px;padding:6px;
   backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-  z-index:91;display:none;min-width:160px;
+  z-index:91;display:none;min-width:180px;
 }
 #menu.open{display:block}
 #menu button{
-  display:block;width:100%;text-align:left;
+  display:flex;align-items:center;justify-content:space-between;
+  width:100%;text-align:left;
   background:none;border:none;color:rgba(255,255,255,0.7);
   font-size:14px;padding:10px 12px;border-radius:8px;
   cursor:pointer;font-family:inherit;
 }
 #menu button:active{background:rgba(255,255,255,0.08)}
+/* toggle indicator */
+.toggle-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:rgba(255,255,255,0.15);flex-shrink:0;
+}
+.toggle-dot.on{background:rgba(110,168,254,0.8)}
 
-/* Hint */
+/* ─── Hint ─── */
 #hint{
   position:fixed;top:50%;left:50%;
   transform:translate(-50%,-50%);
@@ -100,7 +211,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:-ap
   transition:opacity 0.8s ease;
 }
 
-/* Toast */
+/* ─── Toast ─── */
 #toast{
   position:fixed;top:max(16px,env(safe-area-inset-top,0px));
   left:50%;transform:translateX(-50%) translateY(-40px);
@@ -120,8 +231,12 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:-ap
 
 <div id="hint">tap anywhere</div>
 
+<!-- Editor (tap-to-edit existing thought) -->
 <div id="editor">
   <textarea id="ed-text" placeholder="think..." autocomplete="off" autocorrect="on" spellcheck="true"></textarea>
+  <div id="ed-folder-row">
+    <!-- folder chips rendered dynamically -->
+  </div>
   <div id="editor-actions">
     <button id="del-btn">delete</button>
     <button id="cancel-btn">cancel</button>
@@ -129,16 +244,37 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:-ap
   </div>
 </div>
 
+<!-- Zero button (feature 1) -->
+<div id="zero-btn" aria-label="quick capture">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+</div>
+
+<!-- Zero capture overlay (feature 1) -->
+<div id="zero-overlay">
+  <textarea id="zero-text" placeholder="what's on your mind?" autocomplete="off" autocorrect="on" spellcheck="true"></textarea>
+  <div id="zero-actions">
+    <button id="zero-cancel">cancel</button>
+    <button class="save" id="zero-save">done</button>
+  </div>
+</div>
+
+<!-- Folder bar (feature 2) -->
+<div id="folder-bar"></div>
+
+<!-- Stats -->
 <div id="stats"></div>
 
+<!-- Menu pill -->
 <div id="menu-pill" aria-label="menu">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
 </div>
 
+<!-- Menu dropdown -->
 <div id="menu">
   <button id="btn-reset-view">reset view</button>
   <button id="btn-export">export thoughts</button>
   <button id="btn-import">import thoughts</button>
+  <button id="btn-open-capture">open to capture <span class="toggle-dot" id="capture-toggle-dot"></span></button>
   <button id="btn-clear">clear all</button>
 </div>
 
@@ -156,8 +292,17 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 // State
 // ═══════════════════════════════════════════
 
-let state = { thoughts: [], connections: [], camera: null };
+let state = {
+  thoughts: [],
+  connections: [],
+  folders: [],        // feature 2: array of folder name strings
+  activeFolder: null, // feature 2: null = show all
+  camera: null,
+  openToCapture: false // feature 3
+};
+
 let editingId = null;
+let editingFolder = null; // tracks folder assignment during edit
 let connectSource = null;
 let holdTimer = null;
 let isDragging = false;
@@ -206,8 +351,7 @@ controls.maxDistance = 60;
 controls.enableRotate = true;
 
 // Lighting
-const ambient = new THREE.AmbientLight(0x404060, 0.6);
-scene.add(ambient);
+scene.add(new THREE.AmbientLight(0x404060, 0.6));
 const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
 dirLight.position.set(5, 8, 10);
 scene.add(dirLight);
@@ -215,15 +359,12 @@ const backLight = new THREE.DirectionalLight(0x4466aa, 0.3);
 backLight.position.set(-5, -3, -8);
 scene.add(backLight);
 
-// Subtle star field
+// Star field
 const starGeo = new THREE.BufferGeometry();
-const starVerts = [];
-for (let i = 0; i < 400; i++) {
-  starVerts.push((Math.random() - 0.5) * 100, (Math.random() - 0.5) * 100, (Math.random() - 0.5) * 100);
-}
-starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starVerts, 3));
-const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.08, transparent: true, opacity: 0.3 });
-scene.add(new THREE.Points(starGeo, starMat));
+const sv = [];
+for (let i = 0; i < 400; i++) sv.push((Math.random()-0.5)*100,(Math.random()-0.5)*100,(Math.random()-0.5)*100);
+starGeo.setAttribute('position', new THREE.Float32BufferAttribute(sv, 3));
+scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({ color:0xffffff, size:0.08, transparent:true, opacity:0.3 })));
 
 // Groups
 const thoughtGroup = new THREE.Group();
@@ -242,10 +383,8 @@ function makeThoughtMaterial(color) {
     color: new THREE.Color(color || '#6ea8fe'),
     emissive: new THREE.Color(color || '#6ea8fe'),
     emissiveIntensity: 0.15,
-    roughness: 0.4,
-    metalness: 0.1,
-    transparent: true,
-    opacity: 0.9,
+    roughness: 0.4, metalness: 0.1,
+    transparent: true, opacity: 0.9,
   });
 }
 
@@ -258,31 +397,20 @@ function createLabel(text) {
   ctx.font = '500 28px -apple-system, BlinkMacSystemFont, sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  
-  // Truncate if needed
   let display = text || '';
   if (display.length > 40) display = display.slice(0, 38) + '…';
-  
-  // Word wrap simple
   const words = display.split(' ');
-  let lines = [];
-  let line = '';
+  let lines = [], line = '';
   for (const w of words) {
     const test = line ? line + ' ' + w : w;
-    if (ctx.measureText(test).width > 460) {
-      lines.push(line);
-      line = w;
-    } else {
-      line = test;
-    }
+    if (ctx.measureText(test).width > 460) { lines.push(line); line = w; }
+    else line = test;
   }
   if (line) lines.push(line);
   if (lines.length > 3) lines = lines.slice(0, 3);
-  
   const lineH = 32;
   const startY = 64 - ((lines.length - 1) * lineH) / 2;
   lines.forEach((l, i) => ctx.fillText(l, 256, startY + i * lineH));
-  
   const tex = new THREE.CanvasTexture(c);
   tex.needsUpdate = true;
   const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, opacity: 0.85, depthTest: false });
@@ -296,15 +424,8 @@ function addThoughtMesh(t) {
   const mat = makeThoughtMaterial(t.color);
   const mesh = new THREE.Mesh(sphereGeo, mat);
   mesh.position.set(t.position[0], t.position[1], t.position[2]);
-  mesh.userData = { id: t.id, baseEmissive: 0.15, targetEmissive: 0.15, breath: Math.random() * Math.PI * 2 };
-  
-  // Label
-  if (t.text) {
-    const label = createLabel(t.text);
-    label.name = 'label';
-    mesh.add(label);
-  }
-  
+  mesh.userData = { id: t.id, baseEmissive: 0.15, targetEmissive: 0.15, targetOpacity: 0.9, breath: Math.random() * Math.PI * 2 };
+  if (t.text) { const label = createLabel(t.text); label.name = 'label'; mesh.add(label); }
   thoughtGroup.add(mesh);
   return mesh;
 }
@@ -312,11 +433,7 @@ function addThoughtMesh(t) {
 function updateLabel(mesh, text) {
   const old = mesh.getObjectByName('label');
   if (old) mesh.remove(old);
-  if (text) {
-    const label = createLabel(text);
-    label.name = 'label';
-    mesh.add(label);
-  }
+  if (text) { const label = createLabel(text); label.name = 'label'; mesh.add(label); }
 }
 
 function getMesh(id) {
@@ -329,34 +446,22 @@ function getMesh(id) {
 
 function rebuildConnections() {
   while (lineGroup.children.length) lineGroup.remove(lineGroup.children[0]);
-  
-  // Group connections between same pair
   const pairs = {};
   for (const c of state.connections) {
     const key = [c.from, c.to].sort().join('|');
     pairs[key] = (pairs[key] || 0) + 1;
   }
-  
   const drawn = new Set();
   for (const c of state.connections) {
     const key = [c.from, c.to].sort().join('|');
     if (drawn.has(key)) continue;
     drawn.add(key);
-    
-    const mA = getMesh(c.from);
-    const mB = getMesh(c.to);
+    const mA = getMesh(c.from), mB = getMesh(c.to);
     if (!mA || !mB) continue;
-    
     const density = pairs[key] || 1;
-    const thick = Math.min(0.02 + density * 0.015, 0.08);
     const opacity = Math.min(0.2 + density * 0.1, 0.7);
-    
-    const points = [mA.position.clone(), mB.position.clone()];
-    const geo = new THREE.BufferGeometry().setFromPoints(points);
-    const mat = new THREE.LineBasicMaterial({ 
-      color: 0x6ea8fe, transparent: true, opacity,
-      linewidth: 1 // WebGL limitation, but we set it anyway
-    });
+    const geo = new THREE.BufferGeometry().setFromPoints([mA.position.clone(), mB.position.clone()]);
+    const mat = new THREE.LineBasicMaterial({ color: 0x6ea8fe, transparent: true, opacity, linewidth: 1 });
     const line = new THREE.Line(geo, mat);
     line.userData = { from: c.from, to: c.to, density };
     lineGroup.add(line);
@@ -365,8 +470,7 @@ function rebuildConnections() {
 
 function updateConnectionPositions() {
   for (const line of lineGroup.children) {
-    const mA = getMesh(line.userData.from);
-    const mB = getMesh(line.userData.to);
+    const mA = getMesh(line.userData.from), mB = getMesh(line.userData.to);
     if (!mA || !mB) continue;
     const pos = line.geometry.attributes.position;
     pos.setXYZ(0, mA.position.x, mA.position.y, mA.position.z);
@@ -387,6 +491,62 @@ function createPendingLine() {
 pendingLineMesh = createPendingLine();
 
 // ═══════════════════════════════════════════
+// Folder filtering (feature 2)
+// ═══════════════════════════════════════════
+
+function isThoughtVisible(t) {
+  if (!state.activeFolder) return true; // 'all' view
+  if (!t.folder) return true; // unassigned = always visible
+  return t.folder === state.activeFolder;
+}
+
+function applyFolderFilter() {
+  // Update thought visibility
+  for (const mesh of thoughtGroup.children) {
+    const t = state.thoughts.find(x => x.id === mesh.userData.id);
+    if (!t) continue;
+    const visible = isThoughtVisible(t);
+    mesh.userData.targetOpacity = visible ? 0.9 : 0.04;
+    mesh.userData.targetEmissive = visible ? 0.15 : 0.02;
+    // Label visibility
+    const label = mesh.getObjectByName('label');
+    if (label) label.material.opacity = visible ? 0.85 : 0.03;
+  }
+  // Update connections
+  for (const line of lineGroup.children) {
+    const tA = state.thoughts.find(x => x.id === line.userData.from);
+    const tB = state.thoughts.find(x => x.id === line.userData.to);
+    if (!tA || !tB) { line.visible = false; continue; }
+    line.visible = isThoughtVisible(tA) && isThoughtVisible(tB);
+  }
+  renderFolderBar();
+}
+
+function renderFolderBar() {
+  const bar = document.getElementById('folder-bar');
+  // Only show bar if folders exist
+  if (state.folders.length === 0) { bar.innerHTML = ''; return; }
+  
+  let html = `<div class="ftab${!state.activeFolder ? ' active' : ''}" data-folder="__all__">all</div>`;
+  for (const f of state.folders) {
+    html += `<div class="ftab${state.activeFolder === f ? ' active' : ''}" data-folder="${f}">${f}</div>`;
+  }
+  bar.innerHTML = html;
+  
+  // Attach events
+  bar.querySelectorAll('.ftab').forEach(el => {
+    el.addEventListener('pointerdown', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      const folder = el.dataset.folder;
+      state.activeFolder = folder === '__all__' ? null : folder;
+      applyFolderFilter();
+      save();
+    });
+  });
+}
+
+// ═══════════════════════════════════════════
 // Persistence
 // ═══════════════════════════════════════════
 
@@ -405,13 +565,22 @@ function load() {
     const s = JSON.parse(raw);
     state.thoughts = s.thoughts || [];
     state.connections = s.connections || [];
+    state.folders = s.folders || [];
+    state.activeFolder = s.activeFolder || null;
+    state.openToCapture = s.openToCapture || false;
     if (s.camera) {
       camera.position.set(s.camera.px, s.camera.py, s.camera.pz);
       controls.target.set(s.camera.tx, s.camera.ty, s.camera.tz);
     }
+    // Migrate: add folder field to old thoughts
+    for (const t of state.thoughts) {
+      if (t.folder === undefined) t.folder = null;
+    }
     // Rebuild meshes
     for (const t of state.thoughts) addThoughtMesh(t);
     rebuildConnections();
+    applyFolderFilter();
+    updateCaptureToggle();
     if (state.thoughts.length > 0) hideHint();
   } catch(e) { console.warn('load failed', e); }
 }
@@ -421,33 +590,34 @@ function load() {
 // ═══════════════════════════════════════════
 
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
-
 const COLORS = ['#6ea8fe','#a78bfa','#f472b6','#34d399','#fbbf24','#fb923c','#f87171','#67e8f9'];
 let colorIdx = 0;
 
-function createThought(x, y, z) {
+function createThought(x, y, z, text, folder) {
   const t = {
-    id: uid(),
-    text: '',
+    id: uid(), text: text || '',
     position: [x, y, z],
     color: COLORS[colorIdx++ % COLORS.length],
-    created: Date.now(),
-    touched: Date.now()
+    created: Date.now(), touched: Date.now(),
+    folder: folder || state.activeFolder || null
   };
   state.thoughts.push(t);
   const mesh = addThoughtMesh(t);
+  applyFolderFilter();
   save();
   hideHint();
   return t;
 }
 
-function updateThought(id, text) {
+function updateThought(id, text, folder) {
   const t = state.thoughts.find(t => t.id === id);
   if (!t) return;
   t.text = text;
   t.touched = Date.now();
+  if (folder !== undefined) t.folder = folder;
   const mesh = getMesh(id);
   if (mesh) updateLabel(mesh, text);
+  applyFolderFilter();
   save();
 }
 
@@ -471,77 +641,169 @@ function addConnection(fromId, toId) {
   if (fromId === toId) return;
   state.connections.push({ id: uid(), from: fromId, to: toId, created: Date.now() });
   rebuildConnections();
+  applyFolderFilter();
   save();
   toast('connected');
 }
 
 // ═══════════════════════════════════════════
-// Editor
+// Editor (tap-to-edit)
 // ═══════════════════════════════════════════
 
 const editorEl = document.getElementById('editor');
 const edText = document.getElementById('ed-text');
-const saveBtn = document.getElementById('save-btn');
-const cancelBtn = document.getElementById('cancel-btn');
-const delBtn = document.getElementById('del-btn');
+const edFolderRow = document.getElementById('ed-folder-row');
+
+function renderEditorFolders() {
+  let html = '';
+  // "none" chip
+  html += `<div class="folder-chip${!editingFolder ? ' active' : ''}" data-ef="__none__">none</div>`;
+  // Existing folders
+  for (const f of state.folders) {
+    html += `<div class="folder-chip${editingFolder === f ? ' active' : ''}" data-ef="${f}">${f}</div>`;
+  }
+  // Add new
+  html += `<div class="folder-chip add-new" id="add-folder-chip">+ new</div>`;
+  html += `<input id="ed-folder-input" type="text" placeholder="name" maxlength="20">`;
+  edFolderRow.innerHTML = html;
+  
+  // Events
+  edFolderRow.querySelectorAll('.folder-chip[data-ef]').forEach(el => {
+    el.addEventListener('pointerdown', (e) => {
+      e.stopPropagation();
+      const v = el.dataset.ef;
+      editingFolder = v === '__none__' ? null : v;
+      renderEditorFolders();
+    });
+  });
+  
+  const addChip = document.getElementById('add-folder-chip');
+  const folderInput = document.getElementById('ed-folder-input');
+  if (addChip && folderInput) {
+    addChip.addEventListener('pointerdown', (e) => {
+      e.stopPropagation();
+      folderInput.style.display = 'inline-block';
+      setTimeout(() => folderInput.focus(), 50);
+    });
+    folderInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const name = folderInput.value.trim().toLowerCase();
+        if (name && !state.folders.includes(name)) {
+          state.folders.push(name);
+          save();
+        }
+        if (name) editingFolder = name;
+        folderInput.style.display = 'none';
+        renderEditorFolders();
+      }
+      if (e.key === 'Escape') {
+        folderInput.style.display = 'none';
+      }
+    });
+    folderInput.addEventListener('blur', () => {
+      const name = folderInput.value.trim().toLowerCase();
+      if (name && !state.folders.includes(name)) {
+        state.folders.push(name);
+        save();
+      }
+      if (name) editingFolder = name;
+      folderInput.style.display = 'none';
+      renderEditorFolders();
+    });
+  }
+}
 
 function openEditor(id) {
   editingId = id;
   const t = state.thoughts.find(t => t.id === id);
   edText.value = t ? t.text : '';
+  editingFolder = t ? (t.folder || null) : (state.activeFolder || null);
+  renderEditorFolders();
   editorEl.classList.add('open');
   controls.enabled = false;
-  // Auto-size
   edText.style.height = 'auto';
-  setTimeout(() => {
-    edText.focus();
-    edText.selectionStart = edText.value.length;
-  }, 50);
+  setTimeout(() => { edText.focus(); edText.selectionStart = edText.value.length; }, 50);
 }
 
 function closeEditor(doSave) {
   if (doSave && editingId) {
     const text = edText.value.trim();
-    if (!text) {
-      deleteThought(editingId);
-    } else {
-      updateThought(editingId, text);
-    }
+    if (!text) { deleteThought(editingId); }
+    else { updateThought(editingId, text, editingFolder); }
   }
   editingId = null;
+  editingFolder = null;
   editorEl.classList.remove('open');
   controls.enabled = true;
+  renderFolderBar();
 }
 
-saveBtn.addEventListener('click', () => closeEditor(true));
-cancelBtn.addEventListener('click', () => {
-  // If new thought with no text, delete it
-  if (editingId) {
-    const t = state.thoughts.find(t => t.id === editingId);
-    if (t && !t.text) deleteThought(editingId);
-  }
+document.getElementById('save-btn').addEventListener('click', () => closeEditor(true));
+document.getElementById('cancel-btn').addEventListener('click', () => {
+  if (editingId) { const t = state.thoughts.find(t => t.id === editingId); if (t && !t.text) deleteThought(editingId); }
   closeEditor(false);
 });
-delBtn.addEventListener('click', () => {
+document.getElementById('del-btn').addEventListener('click', () => {
   if (editingId) deleteThought(editingId);
   closeEditor(false);
 });
 
-// Keyboard in editor
 edText.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') { closeEditor(false); e.preventDefault(); }
-  // Desktop: Enter without shift = save
-  if (e.key === 'Enter' && !e.shiftKey && window.innerWidth > 768) {
-    closeEditor(true);
-    e.preventDefault();
+  if (e.key === 'Enter' && !e.shiftKey && window.innerWidth > 768) { closeEditor(true); e.preventDefault(); }
+});
+edText.addEventListener('input', () => { edText.style.height = 'auto'; edText.style.height = Math.min(edText.scrollHeight, 200) + 'px'; });
+
+// ═══════════════════════════════════════════
+// Zero button capture (feature 1)
+// ═══════════════════════════════════════════
+
+const zeroBtn = document.getElementById('zero-btn');
+const zeroOverlay = document.getElementById('zero-overlay');
+const zeroText = document.getElementById('zero-text');
+
+function openZeroCapture() {
+  zeroText.value = '';
+  zeroOverlay.classList.add('open');
+  controls.enabled = false;
+  setTimeout(() => zeroText.focus(), 80);
+}
+
+function closeZeroCapture(doSave) {
+  if (doSave) {
+    const text = zeroText.value.trim();
+    if (text) {
+      // Place near camera center with slight random offset
+      const center = controls.target.clone();
+      center.x += (Math.random() - 0.5) * 3;
+      center.y += (Math.random() - 0.5) * 3;
+      center.z += (Math.random() - 0.5) * 1;
+      createThought(center.x, center.y, center.z, text);
+      toast('captured');
+    }
   }
+  zeroOverlay.classList.remove('open');
+  controls.enabled = true;
+}
+
+// Zero button: use pointerdown to avoid canvas swallowing
+zeroBtn.addEventListener('pointerdown', (e) => {
+  e.stopPropagation();
+  e.preventDefault();
+  openZeroCapture();
 });
 
-// Auto-resize textarea
-edText.addEventListener('input', () => {
-  edText.style.height = 'auto';
-  edText.style.height = Math.min(edText.scrollHeight, 200) + 'px';
+document.getElementById('zero-save').addEventListener('click', () => closeZeroCapture(true));
+document.getElementById('zero-cancel').addEventListener('click', () => closeZeroCapture(false));
+
+zeroText.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') { closeZeroCapture(false); e.preventDefault(); }
+  if (e.key === 'Enter' && !e.shiftKey && window.innerWidth > 768) { closeZeroCapture(true); e.preventDefault(); }
 });
+
+// Auto-resize zero textarea
+zeroText.addEventListener('input', () => { zeroText.style.height = 'auto'; zeroText.style.height = Math.min(zeroText.scrollHeight, 300) + 'px'; });
 
 // ═══════════════════════════════════════════
 // Raycast helpers
@@ -556,14 +818,18 @@ function ndcFromEvent(e) {
 function hitThought(e) {
   ndcFromEvent(e);
   raycaster.setFromCamera(pointer, camera);
-  const hits = raycaster.intersectObjects(thoughtGroup.children, false);
+  // Only hit visible thoughts
+  const visible = thoughtGroup.children.filter(m => {
+    const t = state.thoughts.find(x => x.id === m.userData.id);
+    return t && isThoughtVisible(t);
+  });
+  const hits = raycaster.intersectObjects(visible, false);
   return hits.length ? hits[0].object : null;
 }
 
 function worldPosFromScreen(e) {
   ndcFromEvent(e);
   raycaster.setFromCamera(pointer, camera);
-  // Project onto a plane facing the camera at z=0 relative to camera target
   const camDir = camera.getWorldDirection(new THREE.Vector3());
   plane.setFromNormalAndCoplanarPoint(camDir.negate(), controls.target);
   raycaster.ray.intersectPlane(plane, intersectPt);
@@ -575,16 +841,16 @@ function worldPosFromScreen(e) {
 // ═══════════════════════════════════════════
 
 function pxFromEvent(e) {
-  return {
-    x: e.clientX ?? e.touches?.[0]?.clientX ?? 0,
-    y: e.clientY ?? e.touches?.[0]?.clientY ?? 0
-  };
+  return { x: e.clientX ?? e.touches?.[0]?.clientX ?? 0, y: e.clientY ?? e.touches?.[0]?.clientY ?? 0 };
+}
+
+function isOverlayOpen() {
+  return editorEl.classList.contains('open') || zeroOverlay.classList.contains('open');
 }
 
 function onPointerDown(e) {
-  if (editorEl.classList.contains('open')) return;
+  if (isOverlayOpen()) return;
   if (e.target !== canvas) return;
-  // Ignore multi-touch (pinch/pan)
   if (e.touches && e.touches.length > 1) { clearHold(); return; }
   
   const px = pxFromEvent(e);
@@ -596,46 +862,34 @@ function onPointerDown(e) {
   const hit = hitThought(e);
   
   if (hit) {
-    // Start potential drag or hold
     draggedMesh = hit;
-    
-    // Calculate offset for smooth dragging
     const wp = worldPosFromScreen(e);
     dragOffset.copy(draggedMesh.position).sub(wp);
-    
-    // Start hold timer for connect mode
     holdTimer = setTimeout(() => {
       if (!pointerMoved) {
         holdTriggered = true;
         connectSource = draggedMesh.userData.id;
         draggedMesh.material.emissiveIntensity = 0.6;
         pendingLineMesh.visible = true;
-        // Haptic feedback if available
         if (navigator.vibrate) navigator.vibrate(30);
       }
     }, HOLD_MS);
-    
     controls.enabled = false;
   } else {
-    // Clicking empty space — let orbit controls handle, but track for tap-to-create
     draggedMesh = null;
     controls.enabled = true;
   }
 }
 
 function onPointerMove(e) {
-  if (editorEl.classList.contains('open')) return;
+  if (isOverlayOpen()) return;
   if (e.touches && e.touches.length > 1) { clearHold(); return; }
   
   const px = pxFromEvent(e);
-  const dx = px.x - pointerStart.x;
-  const dy = px.y - pointerStart.y;
-  const dist = Math.sqrt(dx * dx + dy * dy);
-  
-  if (dist > DRAG_THRESH) pointerMoved = true;
+  const dx = px.x - pointerStart.x, dy = px.y - pointerStart.y;
+  if (Math.sqrt(dx*dx + dy*dy) > DRAG_THRESH) pointerMoved = true;
   
   if (draggedMesh && !holdTriggered && pointerMoved) {
-    // Dragging a thought
     clearTimeout(holdTimer);
     isDragging = true;
     const wp = worldPosFromScreen(e);
@@ -645,7 +899,6 @@ function onPointerMove(e) {
   }
   
   if (holdTriggered && connectSource) {
-    // Drawing connection line
     const srcMesh = getMesh(connectSource);
     if (srcMesh) {
       const wp = worldPosFromScreen(e);
@@ -654,40 +907,34 @@ function onPointerMove(e) {
       pos.setXYZ(1, wp.x, wp.y, wp.z);
       pos.needsUpdate = true;
     }
-    
-    // Highlight hovered thought
     const hit = hitThought(e);
     for (const child of thoughtGroup.children) {
-      child.userData.targetEmissive = (hit === child && child.userData.id !== connectSource) ? 0.5 : 0.15;
+      const t = state.thoughts.find(x => x.id === child.userData.id);
+      if (t && isThoughtVisible(t)) {
+        child.userData.targetEmissive = (hit === child && child.userData.id !== connectSource) ? 0.5 : 0.15;
+      }
     }
   }
 }
 
 function onPointerUp(e) {
-  if (editorEl.classList.contains('open')) return;
-  
+  if (isOverlayOpen()) return;
   clearTimeout(holdTimer);
   
   if (holdTriggered && connectSource) {
-    // Finish connection
     pendingLineMesh.visible = false;
     const hit = hitThought(e);
-    if (hit && hit.userData.id !== connectSource) {
-      addConnection(connectSource, hit.userData.id);
-    }
-    // Reset emissive
+    if (hit && hit.userData.id !== connectSource) addConnection(connectSource, hit.userData.id);
     const src = getMesh(connectSource);
     if (src) src.userData.targetEmissive = 0.15;
     for (const child of thoughtGroup.children) child.userData.targetEmissive = 0.15;
     connectSource = null;
+    applyFolderFilter();
   } else if (isDragging && draggedMesh) {
-    // Finished drag
     save();
   } else if (draggedMesh && !pointerMoved) {
-    // Tap on thought = edit
     openEditor(draggedMesh.userData.id);
   } else if (!draggedMesh && !pointerMoved) {
-    // Tap on empty space = create
     const wp = worldPosFromScreen(e);
     const t = createThought(wp.x, wp.y, wp.z);
     openEditor(t.id);
@@ -710,31 +957,30 @@ function clearHold() {
   }
 }
 
-// Touch events
 canvas.addEventListener('touchstart', onPointerDown, { passive: false });
 canvas.addEventListener('touchmove', (e) => { e.preventDefault(); onPointerMove(e); }, { passive: false });
 canvas.addEventListener('touchend', onPointerUp);
 canvas.addEventListener('touchcancel', () => { clearHold(); draggedMesh = null; isDragging = false; controls.enabled = true; });
-
-// Mouse events
 canvas.addEventListener('mousedown', onPointerDown);
 window.addEventListener('mousemove', onPointerMove);
 window.addEventListener('mouseup', onPointerUp);
 
 // ═══════════════════════════════════════════
-// Menu
+// Menu (bug fix 0: pointerdown instead of click)
 // ═══════════════════════════════════════════
 
 const menuEl = document.getElementById('menu');
 const menuPill = document.getElementById('menu-pill');
 
-menuPill.addEventListener('click', (e) => {
+menuPill.addEventListener('pointerdown', (e) => {
   e.stopPropagation();
+  e.preventDefault();
   menuOpen = !menuOpen;
   menuEl.classList.toggle('open', menuOpen);
 });
 
-document.addEventListener('click', (e) => {
+// Close menu on outside tap
+document.addEventListener('pointerdown', (e) => {
   if (menuOpen && !menuEl.contains(e.target) && e.target !== menuPill) {
     menuOpen = false;
     menuEl.classList.remove('open');
@@ -749,7 +995,7 @@ document.getElementById('btn-reset-view').addEventListener('click', () => {
 });
 
 document.getElementById('btn-export').addEventListener('click', () => {
-  const data = JSON.stringify({ thoughts: state.thoughts, connections: state.connections }, null, 2);
+  const data = JSON.stringify({ thoughts: state.thoughts, connections: state.connections, folders: state.folders }, null, 2);
   const blob = new Blob([data], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -762,21 +1008,24 @@ document.getElementById('btn-export').addEventListener('click', () => {
 document.getElementById('btn-import').addEventListener('click', () => {
   const input = document.createElement('input');
   input.type = 'file'; input.accept = '.json';
-  input.onchange = (e) => {
-    const file = e.target.files[0];
+  input.onchange = (ev) => {
+    const file = ev.target.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (ev) => {
+    reader.onload = (r) => {
       try {
-        const data = JSON.parse(ev.target.result);
+        const data = JSON.parse(r.target.result);
         if (data.thoughts) {
-          // Clear existing
           while (thoughtGroup.children.length) thoughtGroup.remove(thoughtGroup.children[0]);
           while (lineGroup.children.length) lineGroup.remove(lineGroup.children[0]);
           state.thoughts = data.thoughts;
           state.connections = data.connections || [];
+          state.folders = data.folders || [];
+          // Migrate
+          for (const t of state.thoughts) { if (t.folder === undefined) t.folder = null; }
           for (const t of state.thoughts) addThoughtMesh(t);
           rebuildConnections();
+          applyFolderFilter();
           save();
           toast('imported ' + state.thoughts.length + ' thoughts');
           if (state.thoughts.length > 0) hideHint();
@@ -789,12 +1038,26 @@ document.getElementById('btn-import').addEventListener('click', () => {
   menuOpen = false; menuEl.classList.remove('open');
 });
 
+// Feature 3: open to capture toggle
+function updateCaptureToggle() {
+  const dot = document.getElementById('capture-toggle-dot');
+  if (dot) dot.classList.toggle('on', !!state.openToCapture);
+}
+
+document.getElementById('btn-open-capture').addEventListener('click', () => {
+  state.openToCapture = !state.openToCapture;
+  updateCaptureToggle();
+  save();
+  toast(state.openToCapture ? 'will open to capture' : 'will open to board');
+  menuOpen = false; menuEl.classList.remove('open');
+});
+
 document.getElementById('btn-clear').addEventListener('click', () => {
   if (!confirm('clear all thoughts?')) return;
-  state.thoughts = [];
-  state.connections = [];
+  state.thoughts = []; state.connections = []; state.folders = []; state.activeFolder = null;
   while (thoughtGroup.children.length) thoughtGroup.remove(thoughtGroup.children[0]);
   while (lineGroup.children.length) lineGroup.remove(lineGroup.children[0]);
+  renderFolderBar();
   save();
   menuOpen = false; menuEl.classList.remove('open');
   toast('cleared');
@@ -825,10 +1088,12 @@ function hideHint() {
 
 function updateStats() {
   const el = document.getElementById('stats');
-  const tc = state.thoughts.length;
-  const cc = state.connections.length;
+  const tc = state.thoughts.length, cc = state.connections.length;
   if (tc === 0) { el.textContent = ''; return; }
-  el.textContent = `${tc} thought${tc !== 1 ? 's' : ''}${cc > 0 ? ` · ${cc} connection${cc !== 1 ? 's' : ''}` : ''}`;
+  let s = `${tc} thought${tc !== 1 ? 's' : ''}`;
+  if (cc > 0) s += ` · ${cc} connection${cc !== 1 ? 's' : ''}`;
+  if (state.activeFolder) s += ` · ${state.activeFolder}`;
+  el.textContent = s;
 }
 
 // ═══════════════════════════════════════════
@@ -839,14 +1104,12 @@ let lastTime = performance.now();
 
 function animate() {
   requestAnimationFrame(animate);
-  
   const now = performance.now();
   const dt = (now - lastTime) / 1000;
   lastTime = now;
   
   controls.update();
   
-  // Breathing animation + emissive lerp
   for (const mesh of thoughtGroup.children) {
     const ud = mesh.userData;
     ud.breath += dt * 0.8;
@@ -858,14 +1121,17 @@ function animate() {
     }
     
     // Emissive lerp
-    const current = mesh.material.emissiveIntensity;
-    const target = ud.targetEmissive + Math.sin(ud.breath) * 0.03;
-    mesh.material.emissiveIntensity += (target - current) * 0.1;
+    const ce = mesh.material.emissiveIntensity;
+    const te = ud.targetEmissive + Math.sin(ud.breath) * 0.03;
+    mesh.material.emissiveIntensity += (te - ce) * 0.1;
+    
+    // Opacity lerp (for folder filtering)
+    const co = mesh.material.opacity;
+    const to = ud.targetOpacity;
+    mesh.material.opacity += (to - co) * 0.08;
   }
   
-  // Update connection positions (for breathing movement)
   if (lineGroup.children.length > 0) updateConnectionPositions();
-  
   updateStats();
   renderer.render(scene, camera);
 }
@@ -887,10 +1153,15 @@ window.addEventListener('resize', () => {
 load();
 animate();
 
+// Feature 3: open to capture on launch
+if (state.openToCapture) {
+  setTimeout(() => openZeroCapture(), 200);
+}
+
 // Auto-save periodically
 setInterval(save, 10000);
 
-// Register service worker
+// Service worker
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(() => {});
 }
