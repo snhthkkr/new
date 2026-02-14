@@ -13,8 +13,8 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}
-html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;color:#fff;position:fixed;touch-action:none}
-#c{width:100%;height:100%;display:block}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;color:#fff}
+#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
 
 /* ─── Editor overlay ─── */
 #editor{
@@ -90,16 +90,15 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:-ap
 /* ─── Zero button ─── */
 #zero-btn{
   position:fixed;
-  bottom:max(24px,calc(env(safe-area-inset-bottom,0px)+12px));
-  left:50%;transform:translateX(-50%);
+  bottom:max(28px,calc(env(safe-area-inset-bottom,0px)+16px));
+  right:20px;
   width:44px;height:44px;border-radius:50%;
   background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);
   display:flex;align-items:center;justify-content:center;
   cursor:pointer;z-index:80;
-  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
 }
 #zero-btn:active{background:rgba(255,255,255,0.1)}
-#zero-btn svg{width:18px;height:18px;opacity:0.3}
+#zero-btn svg{width:18px;height:18px;opacity:0.3;pointer-events:none}
 @keyframes zero-pulse{0%,100%{box-shadow:0 0 0 0 rgba(110,168,254,0)}50%{box-shadow:0 0 0 6px rgba(110,168,254,0.06)}}
 #zero-btn{animation:zero-pulse 4s ease-in-out infinite}
 
@@ -130,10 +129,12 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:-ap
 
 /* ─── Folder bar ─── */
 #folder-bar{
-  position:fixed;top:max(14px,env(safe-area-inset-top,0px));
+  position:fixed;
+  top:max(16px,env(safe-area-inset-top,0px));
   left:50%;transform:translateX(-50%);
   display:flex;gap:6px;z-index:85;
-  max-width:calc(100vw - 100px);overflow-x:auto;
+  max-width:calc(100vw - 48px);
+  overflow-x:auto;
   -webkit-overflow-scrolling:touch;scrollbar-width:none;padding:2px 4px;
 }
 #folder-bar::-webkit-scrollbar{display:none}
@@ -203,7 +204,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:-ap
 
 /* ─── Stats ─── */
 #stats{
-  position:fixed;bottom:max(72px,calc(env(safe-area-inset-bottom,0px)+60px));
+  position:fixed;
+  bottom:max(80px,calc(env(safe-area-inset-bottom,0px)+68px));
   left:50%;transform:translateX(-50%);
   font-size:11px;color:rgba(255,255,255,0.15);
   letter-spacing:0.05em;pointer-events:none;white-space:nowrap;
@@ -211,43 +213,57 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:-ap
 
 /* ─── FPS counter (feat 5) ─── */
 #fps{
-  position:fixed;top:max(14px,env(safe-area-inset-top,0px));left:16px;
+  position:fixed;
+  top:max(16px,env(safe-area-inset-top,0px));
+  left:16px;
   font-size:10px;color:rgba(255,255,255,0.2);
   font-variant-numeric:tabular-nums;pointer-events:none;
   display:none;z-index:85;
 }
 #fps.on{display:block}
 
-/* ─── Menu pill ─── */
-#menu-pill{
-  position:fixed;top:max(12px,env(safe-area-inset-top,0px));right:16px;
-  width:36px;height:36px;border-radius:50%;
-  background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);
+/* ─── Tray button (bottom-left) ─── */
+#tray-btn{
+  position:fixed;
+  bottom:max(28px,calc(env(safe-area-inset-bottom,0px)+16px));
+  left:20px;
+  width:40px;height:40px;border-radius:10px;
+  background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);
   display:flex;align-items:center;justify-content:center;
-  cursor:pointer;z-index:90;
-  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  cursor:pointer;z-index:80;
 }
-#menu-pill:active{background:rgba(255,255,255,0.12)}
-#menu-pill svg{width:16px;height:16px;opacity:0.4}
+#tray-btn svg{width:16px;height:16px;opacity:0.5;pointer-events:none}
 
-/* ─── Menu dropdown ─── */
-#menu{
-  position:fixed;top:max(56px,calc(env(safe-area-inset-top,0px)+48px));right:16px;
-  background:rgba(10,10,15,0.95);border:1px solid rgba(255,255,255,0.1);
-  border-radius:14px;padding:6px;
-  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-  z-index:91;display:none;min-width:180px;
+/* ─── Tray sheet ─── */
+#tray{
+  position:fixed;bottom:0;left:0;right:0;
+  background:#111116;
+  border-top:1px solid rgba(255,255,255,0.1);
+  border-radius:20px 20px 0 0;
+  padding:16px 12px max(24px,calc(env(safe-area-inset-bottom,0px)+16px));
+  z-index:9999;
+  transform:translateY(100%);
+  transition:transform 0.25s cubic-bezier(0.32,0.72,0,1);
 }
-#menu.open{display:block}
-#menu button{
-  display:flex;align-items:center;justify-content:space-between;width:100%;text-align:left;
-  background:none;border:none;color:rgba(255,255,255,0.7);
-  font-size:14px;padding:10px 12px;border-radius:8px;cursor:pointer;font-family:inherit;
+#tray.open{ transform:translateY(0) }
+#tray-handle{
+  width:36px;height:4px;border-radius:2px;
+  background:rgba(255,255,255,0.15);margin:0 auto 16px;
 }
-#menu button:active{background:rgba(255,255,255,0.08)}
+#tray button{
+  display:flex;align-items:center;justify-content:space-between;
+  width:100%;text-align:left;background:none;border:none;
+  color:rgba(255,255,255,0.75);font-size:15px;
+  padding:13px 12px;border-radius:10px;cursor:pointer;font-family:inherit;
+}
+#tray button:active{background:rgba(255,255,255,0.07)}
 .toggle-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.15);flex-shrink:0}
 .toggle-dot.on{background:rgba(110,168,254,0.8)}
-.menu-sep{margin:6px 12px;font-size:10px;color:rgba(255,255,255,0.15);letter-spacing:0.1em;text-transform:uppercase}
+.tray-sep{margin:4px 12px;font-size:10px;color:rgba(255,255,255,0.15);letter-spacing:0.1em;text-transform:uppercase}
+#tray-scrim{
+  position:fixed;inset:0;z-index:9998;display:none;background:transparent;
+}
+#tray-scrim.open{display:block}
 
 /* ─── Hint ─── */
 #hint{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);color:rgba(255,255,255,0.08);font-size:14px;pointer-events:none;transition:opacity 0.8s ease}
@@ -318,18 +334,26 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:-ap
 <!-- FPS (feat 5) -->
 <div id="fps"></div>
 
-<!-- Menu pill -->
-<div id="menu-pill" aria-label="menu">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
-</div>
+<!-- Tray button (bottom-left) -->
+<button id="tray-btn" aria-label="menu">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <line x1="4" y1="7" x2="20" y2="7"/>
+    <line x1="4" y1="12" x2="20" y2="12"/>
+    <line x1="4" y1="17" x2="20" y2="17"/>
+  </svg>
+</button>
 
-<!-- Menu -->
-<div id="menu">
+<!-- Tray scrim (closes tray on outside tap) -->
+<div id="tray-scrim"></div>
+
+<!-- Tray sheet -->
+<div id="tray" role="menu">
+  <div id="tray-handle"></div>
   <button id="btn-export">export thoughts</button>
   <button id="btn-import">import thoughts</button>
   <button id="btn-open-capture">open to capture <span class="toggle-dot" id="capture-toggle-dot"></span></button>
   <button id="btn-clear">clear all</button>
-  <div class="menu-sep">dev</div>
+  <div class="tray-sep">dev</div>
   <button id="btn-reset-view">reset camera</button>
   <button id="btn-dump-state">dump state</button>
   <button id="btn-force-save">force save</button>
@@ -1116,25 +1140,24 @@ window.addEventListener('mousemove', onPointerMove);
 window.addEventListener('mouseup', onPointerUp);
 
 // ═══════════════════════════════════════════
-// Menu (bug 1 fixed)
+// Tray (replaces broken menu)
 // ═══════════════════════════════════════════
 
-const menuEl = document.getElementById('menu');
-const menuPill = document.getElementById('menu-pill');
+const trayEl = document.getElementById('tray');
+const trayBtn = document.getElementById('tray-btn');
+const trayScrim = document.getElementById('tray-scrim');
 
-// Open: pointerdown (stays)
-menuPill.addEventListener('pointerdown', (e) => {
-  e.stopPropagation(); e.preventDefault();
-  menuOpen = !menuOpen;
-  menuEl.classList.toggle('open', menuOpen);
-});
+function openTray() {
+  trayEl.classList.add('open');
+  trayScrim.classList.add('open');
+}
+function closeTray() {
+  trayEl.classList.remove('open');
+  trayScrim.classList.remove('open');
+}
 
-// Close: click (bug 1 fix — no longer races with pointerdown)
-document.addEventListener('click', (e) => {
-  if (menuOpen && !menuEl.contains(e.target) && e.target !== menuPill) {
-    menuOpen = false; menuEl.classList.remove('open');
-  }
-});
+trayBtn.addEventListener('click', openTray);
+trayScrim.addEventListener('click', closeTray);
 
 document.getElementById('btn-export').addEventListener('click', () => {
   const data = JSON.stringify({ thoughts:state.thoughts, connections:state.connections, folders:state.folders }, null, 2);
@@ -1143,7 +1166,7 @@ document.getElementById('btn-export').addEventListener('click', () => {
   const a = document.createElement('a');
   a.href=url; a.download=`atem-${new Date().toISOString().slice(0,10)}.json`;
   a.click(); URL.revokeObjectURL(url);
-  menuOpen=false; menuEl.classList.remove('open'); toast('exported');
+  closeTray(); toast('exported');
 });
 
 document.getElementById('btn-import').addEventListener('click', () => {
@@ -1170,7 +1193,7 @@ document.getElementById('btn-import').addEventListener('click', () => {
     };
     reader.readAsText(file);
   };
-  input.click(); menuOpen=false; menuEl.classList.remove('open');
+  input.click(); closeTray();
 });
 
 // Open to capture toggle
@@ -1181,7 +1204,7 @@ function updateCaptureToggle() {
 document.getElementById('btn-open-capture').addEventListener('click', () => {
   state.openToCapture=!state.openToCapture; updateCaptureToggle(); save();
   toast(state.openToCapture?'will open to capture':'will open to board');
-  menuOpen=false; menuEl.classList.remove('open');
+  closeTray();
 });
 
 document.getElementById('btn-clear').addEventListener('click', () => {
@@ -1190,23 +1213,23 @@ document.getElementById('btn-clear').addEventListener('click', () => {
   while(thoughtGroup.children.length) thoughtGroup.remove(thoughtGroup.children[0]);
   while(lineGroup.children.length) lineGroup.remove(lineGroup.children[0]);
   renderFolderBar(); save();
-  menuOpen=false; menuEl.classList.remove('open'); toast('cleared');
+  closeTray(); toast('cleared');
 });
 
 // ─── Dev tools (feat 5) ───
 
 document.getElementById('btn-reset-view').addEventListener('click', () => {
   camera.position.set(0,0,18); controls.target.set(0,0,0); save();
-  menuOpen=false; menuEl.classList.remove('open');
+  closeTray();
 });
 
 document.getElementById('btn-dump-state').addEventListener('click', () => {
   console.log(JSON.stringify(state, null, 2));
-  menuOpen=false; menuEl.classList.remove('open'); toast('state → console');
+  closeTray(); toast('state → console');
 });
 
 document.getElementById('btn-force-save').addEventListener('click', () => {
-  save(); menuOpen=false; menuEl.classList.remove('open'); toast('saved');
+  save(); closeTray(); toast('saved');
 });
 
 document.getElementById('btn-show-orphans').addEventListener('click', () => {
@@ -1226,15 +1249,14 @@ document.getElementById('btn-show-orphans').addEventListener('click', () => {
       },1500);
     }
   }
-  menuOpen=false; menuEl.classList.remove('open');
-  toast(count+' orphan'+(count!==1?'s':''));
+  closeTray(); toast(count+' orphan'+(count!==1?'s':''));
 });
 
 document.getElementById('btn-toggle-fps').addEventListener('click', () => {
   showFps=!showFps;
   document.getElementById('fps').classList.toggle('on', showFps);
   document.getElementById('fps-dot').classList.toggle('on', showFps);
-  menuOpen=false; menuEl.classList.remove('open');
+  closeTray();
 });
 
 // ═══════════════════════════════════════════
@@ -1330,7 +1352,7 @@ animate();
 if(state.openToCapture) setTimeout(()=>openZeroCapture(),200);
 setInterval(save,10000);
 if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
-console.log('atem v3 — alive');
+console.log('atem v4 — layout sorted');
 </script>
 </body>
 </html>
